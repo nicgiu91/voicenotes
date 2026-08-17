@@ -1,11 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getSettings, saveSettings } from '../lib/db'
 import type { SettingsData } from '../lib/types'
+import { exportBackup, importBackup } from '../lib/export/backup'
 
 export default function Settings() {
   const [s, setS] = useState<SettingsData | null>(null)
   const [saved, setSaved] = useState(false)
+  const [backupMsg, setBackupMsg] = useState('')
+  const [backupBusy, setBackupBusy] = useState(false)
+  const importRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     void getSettings().then(setS)
@@ -157,6 +161,59 @@ export default function Settings() {
           Salva impostazioni
         </button>
         {saved && <span style={{ color: 'var(--ok)' }}>Salvate ✓</span>}
+      </div>
+
+      <h2>Backup</h2>
+      <p className="muted">
+        Il backup contiene note, audio, template e conversazioni in un unico file. Le chiavi API
+        non sono incluse: dopo un ripristino vanno reinserite qui.
+      </p>
+      <div className="row">
+        <button
+          className="btn-ghost"
+          disabled={backupBusy}
+          onClick={() => {
+            setBackupBusy(true)
+            setBackupMsg('')
+            void exportBackup()
+              .then((blob) => {
+                const a = document.createElement('a')
+                a.href = URL.createObjectURL(blob)
+                const d = new Date()
+                a.download = `voicenotes-backup-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.json`
+                a.click()
+                setTimeout(() => URL.revokeObjectURL(a.href), 10_000)
+                setBackupMsg('Backup scaricato.')
+              })
+              .catch(() => setBackupMsg('Errore durante il backup.'))
+              .finally(() => setBackupBusy(false))
+          }}
+        >
+          {backupBusy ? 'Preparazione…' : 'Esporta backup'}
+        </button>
+        <button className="btn-ghost" disabled={backupBusy} onClick={() => importRef.current?.click()}>
+          Importa backup
+        </button>
+        <input
+          ref={importRef}
+          type="file"
+          accept="application/json,.json"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            e.target.value = ''
+            if (!file) return
+            setBackupBusy(true)
+            setBackupMsg('')
+            void importBackup(file)
+              .then((r) => setBackupMsg(`Importate ${r.note} note.`))
+              .catch((err: unknown) =>
+                setBackupMsg(err instanceof Error ? err.message : 'Errore durante l\'importazione.'),
+              )
+              .finally(() => setBackupBusy(false))
+          }}
+        />
+        {backupMsg && <span className="muted">{backupMsg}</span>}
       </div>
 
       <h2>Template di riepilogo</h2>

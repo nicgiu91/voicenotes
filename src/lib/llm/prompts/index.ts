@@ -5,6 +5,7 @@ import { lezionePrompt } from './lezione'
 import { genericoPrompt } from './generico'
 
 export { titoloPrompt } from './titolo'
+export { tagPrompt } from './tag'
 export { mindmapPrompt } from './mindmap'
 export { diarizzazionePrompt } from './diarizzazione'
 

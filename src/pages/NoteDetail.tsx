@@ -13,6 +13,8 @@ import MindMapView from '../components/MindMapView'
 import Markdown from '../components/Markdown'
 import { loadAllTemplates } from './Templates'
 import type { Template } from '../lib/types'
+import { noteToMarkdown } from '../lib/export/markdown'
+import TagEditor from '../components/TagEditor'
 
 export default function NoteDetail() {
   const { id = '' } = useParams()
@@ -77,6 +79,33 @@ export default function NoteDetail() {
     a.download = `${slugify(note.title)}.${audioExtension(note.mimeType)}`
     a.click()
     setTimeout(() => URL.revokeObjectURL(a.href), 10_000)
+  }
+
+  const templateNamesRecord = () =>
+    Object.fromEntries(templates.map((t) => [t.id, t.name]))
+
+  const exportMarkdown = () => {
+    const md = noteToMarkdown(note, templateNamesRecord())
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `${slugify(note.title)}.md`
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(a.href), 10_000)
+  }
+
+  const shareNote = async () => {
+    const md = noteToMarkdown(note, templateNamesRecord())
+    const file = new File([md], `${slugify(note.title)}.md`, { type: 'text/markdown' })
+    try {
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: note.title })
+      } else if (navigator.share) {
+        await navigator.share({ title: note.title, text: md })
+      }
+    } catch {
+      // condivisione annullata dall'utente
+    }
   }
 
   const seekTo = (sec: number) => {
@@ -206,11 +235,22 @@ export default function NoteDetail() {
         <button className="btn-ghost btn-small" onClick={() => void exportAudio()}>
           Esporta audio
         </button>
+        <button className="btn-ghost btn-small" onClick={exportMarkdown}>
+          Esporta .md
+        </button>
+        {'share' in navigator && (
+          <button className="btn-ghost btn-small" onClick={() => void shareNote()}>
+            Condividi
+          </button>
+        )}
         <span className="spacer" />
         <button className="btn-danger btn-small" onClick={() => void removeNote()}>
           Elimina
         </button>
       </div>
+
+      <h2>Tag</h2>
+      <TagEditor note={note} onChanged={() => void reload()} />
 
       <h2>Trascrizione</h2>
       {note.transcript ? (
