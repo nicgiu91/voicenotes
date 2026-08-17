@@ -6,8 +6,13 @@ import { assembleAudio, audioExtension } from '../lib/audio/assemble'
 import { formatDate, formatDuration, slugify } from '../lib/format'
 import { transcribeNote } from '../lib/transcribe/client'
 import { chatLLM, llmConfigured } from '../lib/llm/client'
-import { titoloPrompt } from '../lib/llm/prompts'
+import { diarizzazionePrompt, mindmapPrompt, titoloPrompt } from '../lib/llm/prompts'
+import { markdownToMermaidMindmap } from '../lib/llm/mindmap'
 import TranscriptView from '../components/TranscriptView'
+import MindMapView from '../components/MindMapView'
+import Markdown from '../components/Markdown'
+import { loadAllTemplates } from './Templates'
+import type { Template } from '../lib/types'
 
 export default function NoteDetail() {
   const { id = '' } = useParams()
@@ -20,12 +25,20 @@ export default function NoteDetail() {
   const [transcribing, setTranscribing] = useState(false)
   const [progress, setProgress] = useState('')
   const [transcribeError, setTranscribeError] = useState('')
+  const [templates, setTemplates] = useState<Template[]>([])
+  const [pickedTemplates, setPickedTemplates] = useState<string[]>([])
+  const [aiBusy, setAiBusy] = useState('')
+  const [aiError, setAiError] = useState('')
   const audioRef = useRef<HTMLAudioElement>(null)
 
   const reload = async () => {
     const n = await db.notes.get(id)
     setNote(n ?? null)
   }
+
+  useEffect(() => {
+    void loadAllTemplates().then(setTemplates)
+  }, [])
 
   useEffect(() => {
     void reload()
@@ -102,6 +115,65 @@ export default function NoteDetail() {
     }
   }
 
+  const runLLM = async (busyLabel: string, fn: (llm: Awaited<ReturnType<typeof getSettings>>['llm']) => Promise<void>) => {
+    setAiError('')
+    setAiBusy(busyLabel)
+    try {
+      const settings = await getSettings()
+      if (!llmConfigured(settings.llm)) {
+        throw new Error('Configura prima il provider AI nelle Impostazioni.')
+      }
+      await fn(settings.llm)
+      await reload()
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : 'Errore del provider AI')
+    } finally {
+      setAiBusy('')
+    }
+  }
+
+  const transcriptText = note.transcript?.text ?? ''
+
+  const generateSummaries = () =>
+    runLLM('riepiloghi', async (llm) => {
+      const chosen = templates.filter((t) => pickedTemplates.includes(t.id))
+      const summaries = { ...(note.summaries ?? {}) }
+      for (const t of chosen) {
+        const result = await chatLLM(t.prompt, [{ role: 'user', content: transcriptText }], llm)
+        summaries[t.id] = result
+      }
+      await db.notes.update(note.id, { summaries })
+      setPickedTemplates([])
+    })
+
+  const generateMindmap = () =>
+    runLLM('mappa', async (llm) => {
+      const markdown = await chatLLM(mindmapPrompt, [{ role: 'user', content: transcriptText }], llm)
+      const cleaned = markdown.replace(/^```[a-z]*\n?|```\s*$/g, '').trim()
+      await db.notes.update(note.id, {
+        mindmap: { markdown: cleaned, mermaid: markdownToMermaidMindmap(cleaned) },
+      })
+    })
+
+  const diarize = () =>
+    runLLM('diarizzazione', async (llm) => {
+      const result = await chatLLM(diarizzazionePrompt, [{ role: 'user', content: transcriptText }], llm)
+      const summaries = { ...(note.summaries ?? {}), diarizzazione: result }
+      await db.notes.update(note.id, { summaries })
+    })
+
+  const templateName = (id: string) =>
+    id === 'diarizzazione'
+      ? 'Trascrizione per interlocutore'
+      : (templates.find((t) => t.id === id)?.name ?? id)
+
+  const removeSummary = async (id: string) => {
+    const summaries = { ...(note.summaries ?? {}) }
+    delete summaries[id]
+    await db.notes.update(note.id, { summaries })
+    await reload()
+  }
+
   return (
     <div>
       {editingTitle ? (
@@ -160,6 +232,71 @@ export default function NoteDetail() {
         </p>
       )}
       {transcribeError && <div className="error-box">{transcribeError}</div>}
+
+      {note.transcript && (
+        <>
+          <h2>Riepiloghi AI</h2>
+          {Object.entries(note.summaries ?? {}).map(([id, text]) => (
+            <div key={id} className="card">
+              <div className="row">
+                <strong>{templateName(id)}</strong>
+                <span className="spacer" />
+                <button className="btn-ghost btn-small" onClick={() => void removeSummary(id)}>
+                  Rimuovi
+                </button>
+              </div>
+              <Markdown text={text} />
+            </div>
+          ))}
+          <div className="row" style={{ marginBottom: 8 }}>
+            {templates.map((t) => (
+              <button
+                key={t.id}
+                className={`btn-small ${pickedTemplates.includes(t.id) ? 'btn-primary' : 'btn-ghost'}`}
+                onClick={() =>
+                  setPickedTemplates((cur) =>
+                    cur.includes(t.id) ? cur.filter((x) => x !== t.id) : [...cur, t.id],
+                  )
+                }
+              >
+                {t.name}
+              </button>
+            ))}
+          </div>
+          <div className="row">
+            <button
+              className="btn-primary btn-small"
+              onClick={() => void generateSummaries()}
+              disabled={aiBusy !== '' || pickedTemplates.length === 0}
+            >
+              {aiBusy === 'riepiloghi' ? 'Generazione…' : 'Genera riepilogo'}
+            </button>
+            <button className="btn-ghost btn-small" onClick={() => void diarize()} disabled={aiBusy !== ''}>
+              {aiBusy === 'diarizzazione' ? 'Analisi…' : 'Chi parla? (per interlocutore)'}
+            </button>
+          </div>
+
+          <h2>Mappa mentale</h2>
+          {note.mindmap ? (
+            <>
+              <MindMapView markdown={note.mindmap.markdown} mermaid={note.mindmap.mermaid} />
+              <button
+                className="btn-ghost btn-small"
+                style={{ marginTop: 8 }}
+                onClick={() => void generateMindmap()}
+                disabled={aiBusy !== ''}
+              >
+                {aiBusy === 'mappa' ? 'Generazione…' : 'Rigenera mappa'}
+              </button>
+            </>
+          ) : (
+            <button className="btn-primary btn-small" onClick={() => void generateMindmap()} disabled={aiBusy !== ''}>
+              {aiBusy === 'mappa' ? 'Generazione…' : 'Genera mappa mentale'}
+            </button>
+          )}
+          {aiError && <div className="error-box">{aiError}</div>}
+        </>
+      )}
     </div>
   )
 }
