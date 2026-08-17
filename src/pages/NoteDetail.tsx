@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { db, deleteNoteCompletely } from '../lib/db'
+import { db, deleteNoteCompletely, getSettings } from '../lib/db'
 import type { Note } from '../lib/types'
 import { assembleAudio, audioExtension } from '../lib/audio/assemble'
 import { formatDate, formatDuration, slugify } from '../lib/format'
+import { transcribeNote } from '../lib/transcribe/client'
+import { chatLLM, llmConfigured } from '../lib/llm/client'
+import { titoloPrompt } from '../lib/llm/prompts'
+import TranscriptView from '../components/TranscriptView'
 
 export default function NoteDetail() {
   const { id = '' } = useParams()
@@ -13,6 +17,9 @@ export default function NoteDetail() {
   const [audioError, setAudioError] = useState('')
   const [editingTitle, setEditingTitle] = useState(false)
   const [titleDraft, setTitleDraft] = useState('')
+  const [transcribing, setTranscribing] = useState(false)
+  const [progress, setProgress] = useState('')
+  const [transcribeError, setTranscribeError] = useState('')
   const audioRef = useRef<HTMLAudioElement>(null)
 
   const reload = async () => {
@@ -65,7 +72,35 @@ export default function NoteDetail() {
     el.currentTime = sec
     void el.play()
   }
-  void seekTo // usato dalla sezione trascrizione (M2)
+
+  const doTranscribe = async () => {
+    setTranscribing(true)
+    setTranscribeError('')
+    try {
+      const settings = await getSettings()
+      const transcript = await transcribeNote(note.id, settings.transcribe, setProgress)
+      // titolo automatico: solo se il titolo è ancora quello predefinito
+      if (note.title.startsWith('Registrazione ') && llmConfigured(settings.llm) && transcript.text) {
+        try {
+          setProgress('Generazione del titolo…')
+          const title = await chatLLM(
+            titoloPrompt,
+            [{ role: 'user', content: transcript.text.slice(0, 8000) }],
+            settings.llm,
+          )
+          await db.notes.update(note.id, { title: title.replace(/^["']|["']$/g, '').slice(0, 120) })
+        } catch {
+          // il titolo automatico è un extra: se fallisce, pazienza
+        }
+      }
+      await reload()
+    } catch (e) {
+      setTranscribeError(e instanceof Error ? e.message : 'Errore di trascrizione')
+    } finally {
+      setTranscribing(false)
+      setProgress('')
+    }
+  }
 
   return (
     <div>
@@ -104,6 +139,27 @@ export default function NoteDetail() {
           Elimina
         </button>
       </div>
+
+      <h2>Trascrizione</h2>
+      {note.transcript ? (
+        <>
+          <TranscriptView transcript={note.transcript} onSeek={seekTo} />
+          <button className="btn-ghost btn-small" onClick={() => void doTranscribe()} disabled={transcribing}>
+            {transcribing ? 'Trascrizione in corso…' : 'Ritrascrivi'}
+          </button>
+        </>
+      ) : (
+        <button className="btn-primary" onClick={() => void doTranscribe()} disabled={transcribing}>
+          {transcribing ? 'Trascrizione in corso…' : 'Trascrivi'}
+        </button>
+      )}
+      {transcribing && progress && (
+        <p className="muted">
+          <span className="spin" />
+          {progress}
+        </p>
+      )}
+      {transcribeError && <div className="error-box">{transcribeError}</div>}
     </div>
   )
 }
