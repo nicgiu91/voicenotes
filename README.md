@@ -30,7 +30,16 @@ gratuito come GitHub Pages o Netlify: da lì l'app si installa e funziona offlin
 
 ## Configurare la trascrizione
 
-Impostazioni → Trascrizione. Serve un endpoint **OpenAI-compatible**:
+Impostazioni → Trascrizione. Due modalità:
+
+**Sul dispositivo (gratis, privato, offline).** Whisper gira direttamente nel browser
+(Transformers.js/WebAssembly): niente API, niente chiavi, l'audio non lascia mai il telefono.
+Alla prima trascrizione scarica il modello (Veloce ~40 MB, Equilibrato ~80 MB, Preciso
+~250 MB), poi funziona anche offline. È lenta — sul telefono può servire più tempo della
+durata dell'audio stesso — quindi è adatta a note brevi; per le riunioni lunghe conviene la
+modalità API.
+
+**Servizio online (API).** Serve un endpoint **OpenAI-compatible**:
 
 | Provider | URL base | Note |
 |---|---|---|

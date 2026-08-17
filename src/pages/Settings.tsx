@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getSettings, saveSettings } from '../lib/db'
 import type { SettingsData } from '../lib/types'
 import { exportBackup, importBackup } from '../lib/export/backup'
+import { LOCAL_MODELS } from '../lib/transcribe/local'
 
 export default function Settings() {
   const [s, setS] = useState<SettingsData | null>(null)
@@ -35,36 +36,84 @@ export default function Settings() {
     <div>
       <h1>Impostazioni</h1>
 
-      <h2>Trascrizione (API OpenAI-compatible)</h2>
-      <p className="muted">
-        Funziona con OpenAI, Groq o un server whisper sulla tua rete (es. whisper.cpp sul PC).
-      </p>
+      <h2>Trascrizione</h2>
       <label className="field">
-        <span>URL base (es. https://api.openai.com/v1 oppure http://192.168.1.10:8080/v1)</span>
-        <input
-          type="url"
-          value={s.transcribe.baseUrl}
-          onChange={(e) => update({ transcribe: { ...s.transcribe, baseUrl: e.target.value.trim() } })}
-        />
+        <span>Come trascrivere</span>
+        <select
+          value={s.transcribe.mode}
+          onChange={(e) =>
+            update({ transcribe: { ...s.transcribe, mode: e.target.value as 'api' | 'local' } })
+          }
+        >
+          <option value="api">Servizio online (API, veloce e preciso)</option>
+          <option value="local">Sul dispositivo (gratis, privato, offline)</option>
+        </select>
       </label>
-      <label className="field">
-        <span>API key (lascia vuoto se il server locale non la richiede)</span>
-        <input
-          type="password"
-          value={s.transcribe.apiKey}
-          autoComplete="off"
-          onChange={(e) => update({ transcribe: { ...s.transcribe, apiKey: e.target.value.trim() } })}
-        />
-      </label>
+
+      {s.transcribe.mode === 'local' ? (
+        <>
+          <label className="field">
+            <span>Modello Whisper locale</span>
+            <select
+              value={s.transcribe.localModel}
+              onChange={(e) =>
+                update({
+                  transcribe: {
+                    ...s.transcribe,
+                    localModel: e.target.value as typeof s.transcribe.localModel,
+                  },
+                })
+              }
+            >
+              {Object.entries(LOCAL_MODELS).map(([key, m]) => (
+                <option key={key} value={key}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="info-box">
+            La trascrizione avviene interamente sul tuo dispositivo: nessun costo, nessuna chiave,
+            l'audio non lascia mai il telefono. Alla prima trascrizione viene scaricato il modello
+            (serve rete solo quella volta). È più lenta di un servizio online: adatta a note brevi,
+            per registrazioni lunghe conviene la modalità API.
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="muted">
+            Funziona con OpenAI, Groq o un server whisper sulla tua rete (es. whisper.cpp sul PC).
+          </p>
+          <label className="field">
+            <span>URL base (es. https://api.openai.com/v1 oppure http://192.168.1.10:8080/v1)</span>
+            <input
+              type="url"
+              value={s.transcribe.baseUrl}
+              onChange={(e) => update({ transcribe: { ...s.transcribe, baseUrl: e.target.value.trim() } })}
+            />
+          </label>
+          <label className="field">
+            <span>API key (lascia vuoto se il server locale non la richiede)</span>
+            <input
+              type="password"
+              value={s.transcribe.apiKey}
+              autoComplete="off"
+              onChange={(e) => update({ transcribe: { ...s.transcribe, apiKey: e.target.value.trim() } })}
+            />
+          </label>
+        </>
+      )}
       <div className="row">
-        <label className="field" style={{ flex: 1 }}>
-          <span>Modello (es. whisper-1, whisper-large-v3)</span>
-          <input
-            type="text"
-            value={s.transcribe.model}
-            onChange={(e) => update({ transcribe: { ...s.transcribe, model: e.target.value.trim() } })}
-          />
-        </label>
+        {s.transcribe.mode === 'api' && (
+          <label className="field" style={{ flex: 1 }}>
+            <span>Modello (es. whisper-1, whisper-large-v3)</span>
+            <input
+              type="text"
+              value={s.transcribe.model}
+              onChange={(e) => update({ transcribe: { ...s.transcribe, model: e.target.value.trim() } })}
+            />
+          </label>
+        )}
         <label className="field" style={{ width: 140 }}>
           <span>Lingua</span>
           <select

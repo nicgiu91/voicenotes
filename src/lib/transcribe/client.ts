@@ -68,8 +68,9 @@ export async function transcribeBlob(
 export type TranscribeProgress = (message: string) => void
 
 /**
- * Trascrive una nota completa: ricompone l'audio, lo spezza se lungo,
- * trascrive ogni spezzone e salva la trascrizione unita sulla nota.
+ * Trascrive una nota completa e salva la trascrizione sulla nota.
+ * Modalità 'api': ricompone l'audio, lo spezza se lungo e chiama l'endpoint
+ * configurato. Modalità 'local': Whisper nel browser via Web Worker.
  */
 export async function transcribeNote(
   noteId: string,
@@ -81,21 +82,31 @@ export async function transcribeNote(
 
   onProgress('Preparazione audio…')
   const audio = await assembleAudio(noteId)
-  const pieces = await splitForTranscription(audio, note.durationSec)
 
-  const parts: TranscriptPart[] = []
+  let merged: TranscriptPart
   let language: string | undefined
-  for (let i = 0; i < pieces.length; i++) {
-    onProgress(pieces.length > 1 ? `Trascrizione parte ${i + 1} di ${pieces.length}…` : 'Trascrizione in corso…')
-    const part = await transcribeBlob(pieces[i].blob, settings, note.durationSec)
-    language ??= part.language
-    parts.push(part)
-  }
 
-  const merged = mergeParts(
-    parts,
-    pieces.map((p) => p.offsetSec),
-  )
+  if (settings.mode === 'local') {
+    const { transcribeLocally } = await import('./local')
+    const result = await transcribeLocally(audio, settings, note.durationSec, onProgress)
+    merged = { text: result.text, segments: result.segments }
+    language = result.language
+  } else {
+    const pieces = await splitForTranscription(audio, note.durationSec)
+    const parts: TranscriptPart[] = []
+    for (let i = 0; i < pieces.length; i++) {
+      onProgress(
+        pieces.length > 1 ? `Trascrizione parte ${i + 1} di ${pieces.length}…` : 'Trascrizione in corso…',
+      )
+      const part = await transcribeBlob(pieces[i].blob, settings, note.durationSec)
+      language ??= part.language
+      parts.push(part)
+    }
+    merged = mergeParts(
+      parts,
+      pieces.map((p) => p.offsetSec),
+    )
+  }
   const transcript: Transcript = {
     text: merged.text,
     segments: merged.segments,

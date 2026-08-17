@@ -34,10 +34,17 @@ export interface AudioChunk {
   blob: Blob
 }
 
+export type TranscribeMode = 'api' | 'local'
+export type LocalWhisperSize = 'tiny' | 'base' | 'small'
+
 export interface TranscribeSettings {
+  /** 'api' = servizio OpenAI-compatible; 'local' = Whisper nel browser (Transformers.js) */
+  mode: TranscribeMode
   baseUrl: string
   apiKey: string
   model: string
+  /** dimensione del modello Whisper locale */
+  localModel: LocalWhisperSize
   /** codice lingua ('it', 'en', ...) oppure '' = rilevamento automatico */
   language: string
 }

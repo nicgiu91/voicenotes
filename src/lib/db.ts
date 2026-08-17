@@ -30,9 +30,11 @@ export const db = new VoiceNotesDB()
 export const defaultSettings: SettingsData = {
   privacyAccepted: false,
   transcribe: {
+    mode: 'api',
     baseUrl: 'https://api.openai.com/v1',
     apiKey: '',
     model: 'whisper-1',
+    localModel: 'tiny',
     language: 'it',
   },
   llm: {

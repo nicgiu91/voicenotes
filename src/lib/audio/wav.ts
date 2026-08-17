@@ -33,15 +33,8 @@ export function encodeWav(samples: Float32Array, sampleRate: number): Blob {
   return new Blob([buf], { type: 'audio/wav' })
 }
 
-/**
- * Prepara l'audio per la trascrizione. Registrazioni brevi passano intere;
- * quelle oltre SEGMENT_SEC vengono decodificate, ricampionate a 16 kHz mono
- * e spezzate in WAV da 10 minuti (i timestamp vengono poi ricomposti
- * sommando offsetSec).
- */
-export async function splitForTranscription(blob: Blob, durationSec: number): Promise<AudioSegment[]> {
-  if (durationSec <= SEGMENT_SEC) return [{ blob, offsetSec: 0 }]
-
+/** Decodifica qualunque audio e lo ricampiona a 16 kHz mono (formato di Whisper). */
+export async function decodeTo16kMono(blob: Blob): Promise<Float32Array> {
   const raw = await blob.arrayBuffer()
   const decodeCtx = new AudioContext()
   let decoded: AudioBuffer
@@ -59,7 +52,20 @@ export async function splitForTranscription(blob: Blob, durationSec: number): Pr
   source.connect(offline.destination)
   source.start()
   const rendered = await offline.startRendering()
-  const samples = rendered.getChannelData(0)
+  return rendered.getChannelData(0)
+}
+
+/**
+ * Prepara l'audio per la trascrizione via API. Registrazioni brevi passano
+ * intere; quelle oltre SEGMENT_SEC vengono decodificate, ricampionate a
+ * 16 kHz mono e spezzate in WAV da 10 minuti (i timestamp vengono poi
+ * ricomposti sommando offsetSec).
+ */
+export async function splitForTranscription(blob: Blob, durationSec: number): Promise<AudioSegment[]> {
+  if (durationSec <= SEGMENT_SEC) return [{ blob, offsetSec: 0 }]
+
+  const targetRate = 16000
+  const samples = await decodeTo16kMono(blob)
 
   const segments: AudioSegment[] = []
   const samplesPerSegment = SEGMENT_SEC * targetRate
