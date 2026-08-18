@@ -26,9 +26,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      # Pages va attivato una volta a mano in Settings -> Pages (Source: GitHub Actions):
+      # il token del workflow non ha i permessi per crearlo da solo.
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
