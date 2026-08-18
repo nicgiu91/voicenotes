@@ -17,7 +17,7 @@ function apiUrl(baseUrl: string): string {
 
 /**
  * Trascrive un singolo blob con un'API OpenAI-compatible
- * (OpenAI, Groq, server whisper.cpp in LAN...).
+ * (OpenAI, server whisper.cpp in LAN...).
  * Prova prima verbose_json (con timestamp); se il server non lo supporta
  * ripiega su json semplice.
  */

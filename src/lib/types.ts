@@ -37,7 +37,7 @@ export interface AudioChunk {
 export type TranscribeMode = 'api' | 'local'
 export type LocalWhisperSize = 'tiny' | 'base' | 'small'
 /** servizi di trascrizione proposti; 'custom' = qualunque endpoint OpenAI-compatible */
-export type TranscribeProvider = 'openai' | 'groq' | 'custom'
+export type TranscribeProvider = 'openai' | 'custom'
 
 export interface TranscribeSettings {
   /** 'api' = servizio OpenAI-compatible; 'local' = Whisper nel browser (Transformers.js) */
@@ -58,7 +58,6 @@ export type LlmProvider =
   | 'anthropic'
   | 'openai'
   | 'google'
-  | 'groq'
   | 'openrouter'
   | 'mistral'
   | 'deepseek'

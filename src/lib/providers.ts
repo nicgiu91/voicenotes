@@ -3,6 +3,9 @@ import { t, type TKey } from './i18n'
 
 /**
  * Elenco dei servizi utilizzabili per l'AI e per la trascrizione.
+ * Ci vanno solo servizi che accettano le chiamate diritte dal browser (CORS):
+ * Groq per esempio le rifiuta, quindi si può usare solo dietro un proxy,
+ * scegliendo "il tuo server" e scrivendone l'indirizzo.
  * È l'unico file da toccare per aggiungerne uno nuovo: scegliendo il provider
  * le Impostazioni riempiono da sole URL e modelli.
  */
@@ -94,18 +97,6 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     ],
   },
   {
-    id: 'groq',
-    labelKey: 'provider.groq',
-    api: 'openai',
-    baseUrl: 'https://api.groq.com/openai/v1',
-    keyUrl: 'https://console.groq.com/keys',
-    keyRequired: true,
-    models: [
-      { id: 'llama-3.1-8b-instant', labelKey: 'models.groqLlama8b' },
-      { id: 'llama-3.3-70b-versatile', labelKey: 'models.groqLlama70b' },
-    ],
-  },
-  {
     id: 'openrouter',
     labelKey: 'provider.openrouter',
     api: 'openai',
@@ -170,18 +161,6 @@ export const TRANSCRIBE_PROVIDERS: TranscribeProviderInfo[] = [
     ],
   },
   {
-    id: 'groq',
-    labelKey: 'tprovider.groq',
-    api: 'openai',
-    baseUrl: 'https://api.groq.com/openai/v1',
-    keyUrl: 'https://console.groq.com/keys',
-    keyRequired: true,
-    models: [
-      { id: 'whisper-large-v3-turbo', labelKey: 'tmodels.groqTurbo' },
-      { id: 'whisper-large-v3', labelKey: 'tmodels.groqLargeV3' },
-    ],
-  },
-  {
     id: 'custom',
     labelKey: 'tprovider.custom',
     api: 'openai',
@@ -190,7 +169,8 @@ export const TRANSCRIBE_PROVIDERS: TranscribeProviderInfo[] = [
     ownUrl: true,
     models: [
       { id: 'whisper-1', labelKey: 'tmodels.whisper1' },
-      { id: 'whisper-large-v3', labelKey: 'tmodels.groqLargeV3' },
+      { id: 'whisper-large-v3', labelKey: 'tmodels.largeV3' },
+      { id: 'whisper-large-v3-turbo', labelKey: 'tmodels.largeV3Turbo' },
     ],
   },
 ]

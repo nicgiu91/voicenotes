@@ -62,7 +62,9 @@ describe('URL proposto cambiando servizio', () => {
     nextBaseUrl(llmProvider(to as never), current, LLM_PROVIDERS)
 
   test('scegliendo un servizio noto si usa il suo indirizzo', () => {
-    expect(url('groq', 'https://api.anthropic.com')).toBe('https://api.groq.com/openai/v1')
+    expect(url('google', 'https://api.anthropic.com')).toBe(
+      'https://generativelanguage.googleapis.com/v1beta/openai',
+    )
   })
 
   test('passando al proprio server si tiene l’indirizzo già scritto', () => {
@@ -152,9 +154,9 @@ describe('impostazioni salvate prima dei nuovi servizi', () => {
 
   test('la trascrizione senza servizio lo deduce dall’URL salvato', () => {
     expect(
-      saved({}, { provider: undefined as never, baseUrl: 'https://api.groq.com/openai/v1' }).transcribe
+      saved({}, { provider: undefined as never, baseUrl: 'https://api.openai.com/v1' }).transcribe
         .provider,
-    ).toBe('groq')
+    ).toBe('openai')
     expect(
       saved({}, { provider: undefined as never, baseUrl: 'http://192.168.1.10:8080/v1' }).transcribe
         .provider,

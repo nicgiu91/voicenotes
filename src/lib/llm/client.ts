@@ -10,7 +10,7 @@ export interface LlmMessage {
 /**
  * Chiama l'LLM configurato nelle impostazioni e restituisce il testo della
  * risposta. Supporta Anthropic e qualunque endpoint OpenAI-compatible
- * (LM Studio, Ollama, llama.cpp server, OpenAI, Groq...).
+ * (LM Studio, Ollama, llama.cpp server, OpenAI, Gemini, OpenRouter...).
  */
 export async function chatLLM(system: string, messages: LlmMessage[], s: LlmSettings): Promise<string> {
   if (!s.baseUrl) throw new Error(t('err.llmEndpoint'))

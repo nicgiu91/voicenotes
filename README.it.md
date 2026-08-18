@@ -52,7 +52,6 @@ rilascia le API key.
 | Servizio | Modelli proposti | Note |
 |---|---|---|
 | OpenAI | `whisper-1`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` | i modelli GPT-4o sono più precisi ma non danno i timestamp |
-| Groq | `whisper-large-v3-turbo`, `whisper-large-v3` | velocissimo ed economico |
 | Il tuo server o un altro servizio | quello che scrivi tu | whisper.cpp, faster-whisper, Speaches… vedi CORS più sotto |
 
 Va bene qualunque endpoint OpenAI-compatible: scegli "Il tuo server", scrivi l'indirizzo e
@@ -69,7 +68,6 @@ pagina che la rilascia.
 | Anthropic (Claude) | quello predefinito: i riepiloghi migliori in italiano e inglese |
 | OpenAI (ChatGPT) | se hai già una chiave OpenAI |
 | Google (Gemini) | piano gratuito generoso, modelli molto economici |
-| Groq | le risposte più veloci, a costo quasi nullo |
 | OpenRouter | decine di modelli (Claude e GPT compresi) con una chiave sola |
 | Mistral AI | provider europeo |
 | DeepSeek | tra i più economici |
@@ -77,6 +75,10 @@ pagina che la rilascia.
 
 Tutti i servizi tranne Anthropic parlano il protocollo OpenAI-compatible, quindi funziona
 qualunque servizio lo usi, anche se non è in elenco.
+
+Nell'elenco ci sono solo i servizi che accettano le chiamate dirette dal browser. Alcuni le
+rifiutano (mancano gli header CORS) — per esempio Groq — e si possono raggiungere solo
+tramite un proxy: in quel caso scegli "Il tuo server" e scrivi l'indirizzo del proxy.
 
 Ogni modello nel menu dice quanto è bravo e quanto consuma. I prezzi indicati valgono per
 Claude:

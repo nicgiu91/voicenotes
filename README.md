@@ -23,8 +23,8 @@ Published automatically to GitHub Pages on every push to `master`. On iPhone ope
   IndexedDB in 30-second chunks, so a crash or a closed tab never loses a recording: on the
   next launch the note reappears as "recovered". You can also import existing audio files.
 - **Transcription** — either on your device (Whisper via Transformers.js: free, private,
-  works offline) or through any OpenAI-compatible API (OpenAI, Groq, or a whisper server on
-  your own network). Long recordings are split into 10-minute segments and stitched back
+  works offline) or through any OpenAI-compatible API (OpenAI or a whisper server on your own
+  network). Long recordings are split into 10-minute segments and stitched back
   together with correct timestamps. Timestamps in the transcript are clickable and seek the
   audio.
 - **AI** — summaries from four built-in templates (Meeting, Notes/Idea, Lecture/Training,
@@ -64,7 +64,6 @@ provider issues API keys.
 | Service | Models offered | Notes |
 |---|---|---|
 | OpenAI | `whisper-1`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` | the GPT-4o models are more accurate but return no timestamps |
-| Groq | `whisper-large-v3-turbo`, `whisper-large-v3` | very fast and cheap |
 | Your own server or another service | anything you type | whisper.cpp, faster-whisper, Speaches… see CORS below |
 
 Any OpenAI-compatible endpoint works: choose "Your own server", type the address, and pick or
@@ -81,7 +80,6 @@ link goes straight to the page that issues it.
 | Anthropic (Claude) | the default; best summaries in Italian and English |
 | OpenAI (ChatGPT) | if you already have an OpenAI key |
 | Google (Gemini) | generous free tier, very cheap models |
-| Groq | the fastest answers, at almost no cost |
 | OpenRouter | dozens of models (including Claude and GPT) behind a single key |
 | Mistral AI | European provider |
 | DeepSeek | among the cheapest |
@@ -89,6 +87,10 @@ link goes straight to the page that issues it.
 
 Every service except Anthropic speaks the OpenAI-compatible protocol, so anything that speaks
 it works, whether or not it is in the list.
+
+The list only contains services that accept calls straight from a browser. Some providers —
+Groq, for one — refuse them (no CORS headers), so they can only be reached through a proxy:
+put the proxy's address under "Your own server".
 
 Each model in the dropdown states its speed/quality trade-off. Prices are shown for Claude:
 
