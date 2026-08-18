@@ -7,23 +7,22 @@ import Ask from './pages/Ask'
 import Settings from './pages/Settings'
 import Templates from './pages/Templates'
 import { getSettings, saveSettings } from './lib/db'
+import { useT } from './lib/i18n'
 
 function PrivacyModal({ onAccept }: { onAccept: () => void }) {
+  const { t } = useT()
   return (
     <div className="modal-backdrop">
       <div className="modal">
-        <h2 style={{ marginTop: 0 }}>Benvenuto in VoiceNotes</h2>
+        <h2 style={{ marginTop: 0 }}>{t('privacy.title')}</h2>
         <p>
-          Questa app registra audio dal microfono del telefono. Ricorda di registrare
-          conversazioni <strong>solo con il consenso delle persone presenti</strong>: in molti
-          contesti registrare di nascosto non è consentito.
+          {t('privacy.body1')}
+          <strong>{t('privacy.strong')}</strong>
+          {t('privacy.body2')}
         </p>
-        <p className="muted">
-          Tutti i dati (audio, trascrizioni, chiavi API) restano salvati solo su questo
-          dispositivo.
-        </p>
+        <p className="muted">{t('privacy.note')}</p>
         <button className="btn-primary" style={{ width: '100%' }} onClick={onAccept}>
-          Ho capito
+          {t('privacy.accept')}
         </button>
       </div>
     </div>
@@ -58,6 +57,7 @@ const icons = {
 }
 
 export default function App() {
+  const { t } = useT()
   const [showPrivacy, setShowPrivacy] = useState(false)
 
   useEffect(() => {
@@ -88,19 +88,19 @@ export default function App() {
       <nav className="tabbar">
         <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>
           {icons.notes}
-          Note
+          {t('nav.notes')}
         </NavLink>
         <NavLink to="/registra" className={({ isActive }) => (isActive ? 'active' : '')}>
           {icons.rec}
-          Registra
+          {t('nav.record')}
         </NavLink>
         <NavLink to="/ask" className={({ isActive }) => (isActive ? 'active' : '')}>
           {icons.ask}
-          Ask
+          {t('nav.ask')}
         </NavLink>
         <NavLink to="/impostazioni" className={({ isActive }) => (isActive ? 'active' : '')}>
           {icons.settings}
-          Impostazioni
+          {t('nav.settings')}
         </NavLink>
       </nav>
     </HashRouter>

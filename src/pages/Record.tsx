@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { ChunkedRecorder, importAudioFile, pickMimeType } from '../lib/audio/recorder'
 import { formatDuration } from '../lib/format'
 import LevelMeter from '../components/LevelMeter'
+import { useT } from '../lib/i18n'
 
 // Il registratore vive fuori dal componente: cambiare pagina non ferma la
 // registrazione e tornando su "Registra" si ritrova il controllo.
 let activeRecorder: ChunkedRecorder | null = null
 
 export default function Record() {
+  const { t } = useT()
   const navigate = useNavigate()
   const fileRef = useRef<HTMLInputElement>(null)
   const [recording, setRecording] = useState(activeRecorder?.isRecording ?? false)
@@ -30,13 +32,8 @@ export default function Record() {
       setElapsed(0)
       setRecording(true)
     } catch (e) {
-      setError(
-        'Microfono non disponibile. Controlla i permessi del browser' +
-          (location.protocol === 'http:' && location.hostname !== 'localhost'
-            ? ' (su rete locale serve HTTPS per usare il microfono)'
-            : '') +
-          '.',
-      )
+      const needsHttps = location.protocol === 'http:' && location.hostname !== 'localhost'
+      setError(needsHttps ? t('record.micErrorHttps') : t('record.micError'))
       console.warn(e)
     }
   }
@@ -50,7 +47,7 @@ export default function Record() {
       setRecording(false)
       navigate(`/nota/${noteId}`)
     } catch {
-      setError('Errore nel completamento della registrazione')
+      setError(t('record.stopError'))
     } finally {
       setBusy(false)
     }
@@ -65,7 +62,7 @@ export default function Record() {
       const noteId = await importAudioFile(file)
       navigate(`/nota/${noteId}`)
     } catch {
-      setError('Importazione non riuscita')
+      setError(t('record.importError'))
     } finally {
       setBusy(false)
     }
@@ -80,30 +77,28 @@ export default function Record() {
 
   return (
     <div className="rec-page">
-      <h1 style={{ margin: 0 }}>{recording ? 'Sto registrando…' : 'Registra'}</h1>
+      <h1 style={{ margin: 0 }}>{recording ? t('record.recording') : t('record.title')}</h1>
       <div className="rec-timer">{formatDuration(elapsed)}</div>
       <LevelMeter level={recording ? level : 0} />
       <button
         className={`rec-button ${recording ? 'recording' : ''}`}
         onClick={() => void (recording ? stop() : start())}
         disabled={busy}
-        aria-label={recording ? 'Ferma la registrazione' : 'Avvia la registrazione'}
+        aria-label={recording ? t('record.stop') : t('record.start')}
       >
         <span className="rec-icon" />
       </button>
-      <p className="rec-hint">
-        {recording
-          ? 'La registrazione viene salvata ogni 30 secondi: anche in caso di crash non perdi nulla.'
-          : 'Tocca per iniziare. Tieni lo schermo acceso durante la registrazione: l’app prova a impedire il blocco, ma su iPhone conviene non bloccare lo schermo.'}
-      </p>
+      <p className="rec-hint">{recording ? t('record.hintRecording') : t('record.hintIdle')}</p>
       {error && <div className="error-box">{error}</div>}
       {!recording && (
         <>
           <button className="btn-ghost" onClick={() => fileRef.current?.click()} disabled={busy}>
-            Importa file audio
+            {t('record.import')}
           </button>
           <input ref={fileRef} type="file" accept="audio/*" hidden onChange={(e) => void onImport(e)} />
-          <p className="muted">Formato registrazione: {format || 'predefinito del browser'}</p>
+          <p className="muted">
+            {t('record.format', { format: format || t('record.formatDefault') })}
+          </p>
         </>
       )}
     </div>

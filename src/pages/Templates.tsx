@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react'
 import { db } from '../lib/db'
 import type { Template } from '../lib/types'
 import { builtinTemplates } from '../lib/llm/prompts'
+import { useT } from '../lib/i18n'
 
 /** Elenco completo: predefiniti + personalizzati salvati in IndexedDB. */
 export async function loadAllTemplates(): Promise<Template[]> {
   const custom = await db.templates.toArray()
-  return [...builtinTemplates, ...custom]
+  return [...builtinTemplates(), ...custom]
 }
 
 export default function Templates() {
+  const { t } = useT()
   const [custom, setCustom] = useState<Template[]>([])
   const [editing, setEditing] = useState<Template | null>(null)
   const [viewing, setViewing] = useState<Template | null>(null)
@@ -21,7 +23,7 @@ export default function Templates() {
   }, [])
 
   const startNew = () =>
-    setEditing({ id: crypto.randomUUID(), name: '', prompt: 'Sei un assistente che riassume registrazioni in italiano.\n\n' })
+    setEditing({ id: crypto.randomUUID(), name: '', prompt: t('templates.newPromptStart') })
 
   const save = async () => {
     if (!editing || !editing.name.trim() || !editing.prompt.trim()) return
@@ -30,53 +32,50 @@ export default function Templates() {
     await reload()
   }
 
-  const remove = async (t: Template) => {
-    if (!confirm(`Eliminare il template "${t.name}"?`)) return
-    await db.templates.delete(t.id)
+  const remove = async (tpl: Template) => {
+    if (!confirm(t('templates.deleteConfirm', { name: tpl.name }))) return
+    await db.templates.delete(tpl.id)
     await reload()
   }
 
   return (
     <div>
-      <h1>Template di riepilogo</h1>
-      <p className="muted">
-        Ogni template è un prompt: descrive all'AI come riassumere la trascrizione. Quelli
-        predefiniti non si possono modificare, ma puoi crearne di tuoi.
-      </p>
+      <h1>{t('templates.title')}</h1>
+      <p className="muted">{t('templates.intro')}</p>
 
-      <h2>Predefiniti</h2>
-      {builtinTemplates.map((t) => (
-        <div key={t.id} className="card">
+      <h2>{t('templates.builtin')}</h2>
+      {builtinTemplates().map((tpl) => (
+        <div key={tpl.id} className="card">
           <div className="row">
-            <strong>{t.name}</strong>
+            <strong>{tpl.name}</strong>
             <span className="spacer" />
             <button
               className="btn-ghost btn-small"
-              onClick={() => setViewing(viewing?.id === t.id ? null : t)}
+              onClick={() => setViewing(viewing?.id === tpl.id ? null : tpl)}
             >
-              {viewing?.id === t.id ? 'Nascondi' : 'Vedi prompt'}
+              {viewing?.id === tpl.id ? t('templates.hide') : t('templates.viewPrompt')}
             </button>
           </div>
-          {viewing?.id === t.id && (
+          {viewing?.id === tpl.id && (
             <pre style={{ whiteSpace: 'pre-wrap', fontSize: '0.82rem', color: 'var(--text-dim)' }}>
-              {t.prompt}
+              {tpl.prompt}
             </pre>
           )}
         </div>
       ))}
 
-      <h2>Personalizzati</h2>
-      {custom.length === 0 && !editing && <p className="muted">Nessun template personalizzato.</p>}
-      {custom.map((t) => (
-        <div key={t.id} className="card">
+      <h2>{t('templates.custom')}</h2>
+      {custom.length === 0 && !editing && <p className="muted">{t('templates.none')}</p>}
+      {custom.map((tpl) => (
+        <div key={tpl.id} className="card">
           <div className="row">
-            <strong>{t.name}</strong>
+            <strong>{tpl.name}</strong>
             <span className="spacer" />
-            <button className="btn-ghost btn-small" onClick={() => setEditing(t)}>
-              Modifica
+            <button className="btn-ghost btn-small" onClick={() => setEditing(tpl)}>
+              {t('common.edit')}
             </button>
-            <button className="btn-danger btn-small" onClick={() => void remove(t)}>
-              Elimina
+            <button className="btn-danger btn-small" onClick={() => void remove(tpl)}>
+              {t('common.delete')}
             </button>
           </div>
         </div>
@@ -85,16 +84,16 @@ export default function Templates() {
       {editing ? (
         <div className="card">
           <label className="field">
-            <span>Nome del template</span>
+            <span>{t('templates.name')}</span>
             <input
               type="text"
               value={editing.name}
               onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-              placeholder="es. Consulto / Colloquio"
+              placeholder={t('templates.namePlaceholder')}
             />
           </label>
           <label className="field">
-            <span>Prompt (istruzioni per l'AI)</span>
+            <span>{t('templates.prompt')}</span>
             <textarea
               value={editing.prompt}
               onChange={(e) => setEditing({ ...editing, prompt: e.target.value })}
@@ -102,16 +101,16 @@ export default function Templates() {
           </label>
           <div className="row">
             <button className="btn-primary btn-small" onClick={() => void save()}>
-              Salva template
+              {t('templates.saveTemplate')}
             </button>
             <button className="btn-ghost btn-small" onClick={() => setEditing(null)}>
-              Annulla
+              {t('common.cancel')}
             </button>
           </div>
         </div>
       ) : (
         <button className="btn-ghost" onClick={startNew}>
-          + Nuovo template
+          {t('templates.new')}
         </button>
       )}
     </div>

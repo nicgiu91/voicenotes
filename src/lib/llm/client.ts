@@ -1,4 +1,5 @@
 import type { LlmSettings } from '../types'
+import { t } from '../i18n'
 
 export interface LlmMessage {
   role: 'user' | 'assistant'
@@ -11,7 +12,7 @@ export interface LlmMessage {
  * (LM Studio, Ollama, llama.cpp server, OpenAI, Groq...).
  */
 export async function chatLLM(system: string, messages: LlmMessage[], s: LlmSettings): Promise<string> {
-  if (!s.baseUrl) throw new Error('Configura l\'endpoint LLM nelle Impostazioni.')
+  if (!s.baseUrl) throw new Error(t('err.llmEndpoint'))
   if (s.provider === 'anthropic') return chatAnthropic(system, messages, s)
   return chatOpenAI(system, messages, s)
 }
@@ -36,7 +37,7 @@ async function chatAnthropic(system: string, messages: LlmMessage[], s: LlmSetti
   })
   if (!res.ok) {
     const body = await res.text().catch(() => '')
-    throw new Error(`LLM non raggiungibile (HTTP ${res.status}): ${body.slice(0, 300)}`)
+    throw new Error(t('err.llmUnreachable', { status: res.status, body: body.slice(0, 300) }))
   }
   const data = (await res.json()) as { content?: { type: string; text?: string }[] }
   const text = (data.content ?? [])
@@ -44,7 +45,7 @@ async function chatAnthropic(system: string, messages: LlmMessage[], s: LlmSetti
     .map((b) => b.text ?? '')
     .join('')
     .trim()
-  if (!text) throw new Error('L\'LLM ha restituito una risposta vuota.')
+  if (!text) throw new Error(t('err.llmEmpty'))
   return text
 }
 
@@ -63,11 +64,11 @@ async function chatOpenAI(system: string, messages: LlmMessage[], s: LlmSettings
   })
   if (!res.ok) {
     const body = await res.text().catch(() => '')
-    throw new Error(`LLM non raggiungibile (HTTP ${res.status}): ${body.slice(0, 300)}`)
+    throw new Error(t('err.llmUnreachable', { status: res.status, body: body.slice(0, 300) }))
   }
   const data = (await res.json()) as { choices?: { message?: { content?: string } }[] }
   const text = (data.choices?.[0]?.message?.content ?? '').trim()
-  if (!text) throw new Error('L\'LLM ha restituito una risposta vuota.')
+  if (!text) throw new Error(t('err.llmEmpty'))
   return text
 }
 

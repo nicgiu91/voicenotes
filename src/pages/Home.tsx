@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import { db } from '../lib/db'
 import type { Note } from '../lib/types'
 import NoteCard from '../components/NoteCard'
+import { useT } from '../lib/i18n'
 
 export default function Home() {
+  const { t } = useT()
   const [notes, setNotes] = useState<Note[]>([])
   const [query, setQuery] = useState('')
   const [tagFilter, setTagFilter] = useState('')
@@ -40,12 +42,12 @@ export default function Home() {
 
   return (
     <div>
-      <h1>Le tue note</h1>
+      <h1>{t('home.title')}</h1>
       {notes.length > 0 && (
         <>
           <input
             type="text"
-            placeholder="Cerca nei titoli e nelle trascrizioni…"
+            placeholder={t('home.search')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -67,9 +69,9 @@ export default function Home() {
       )}
       {loaded && notes.length === 0 && (
         <div className="card" style={{ textAlign: 'center', padding: 28 }}>
-          <p style={{ marginTop: 0 }}>Nessuna nota ancora.</p>
+          <p style={{ marginTop: 0 }}>{t('home.empty')}</p>
           <Link to="/registra">
-            <button className="btn-primary">Fai la prima registrazione</button>
+            <button className="btn-primary">{t('home.firstRecording')}</button>
           </Link>
         </div>
       )}
@@ -77,7 +79,7 @@ export default function Home() {
         <NoteCard key={n.id} note={n} />
       ))}
       {loaded && notes.length > 0 && filtered.length === 0 && (
-        <p className="muted">Nessun risultato per questa ricerca.</p>
+        <p className="muted">{t('home.noResults')}</p>
       )}
     </div>
   )

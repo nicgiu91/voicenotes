@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getSettings, saveSettings } from '../lib/db'
-import type { SettingsData } from '../lib/types'
+import { getSettings, saveLanguage, saveSettings } from '../lib/db'
+import type { LocalWhisperSize, SettingsData } from '../lib/types'
 import { exportBackup, importBackup } from '../lib/export/backup'
 import { LOCAL_MODELS } from '../lib/transcribe/local'
+import { isCustomModel, modelsFor } from '../lib/llm/models'
+import { useT, type Lang } from '../lib/i18n'
 
 export default function Settings() {
+  const { t } = useT()
   const [s, setS] = useState<SettingsData | null>(null)
   const [saved, setSaved] = useState(false)
   const [backupMsg, setBackupMsg] = useState('')
@@ -32,60 +35,68 @@ export default function Settings() {
     location.protocol === 'https:' &&
     (s.transcribe.baseUrl.startsWith('http://') || s.llm.baseUrl.startsWith('http://'))
 
+  const models = modelsFor(s.llm.provider)
+  const customModel = isCustomModel(s.llm.provider, s.llm.model)
+
   return (
     <div>
-      <h1>Impostazioni</h1>
+      <h1>{t('settings.title')}</h1>
 
-      <h2>Trascrizione</h2>
       <label className="field">
-        <span>Come trascrivere</span>
+        <span>{t('settings.language')}</span>
+        <select
+          value={s.lang}
+          onChange={(e) => {
+            const lang = e.target.value as Lang
+            setS({ ...s, lang })
+            void saveLanguage(lang) // applicata e salvata subito, senza premere Salva
+          }}
+        >
+          <option value="it">Italiano</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+
+      <h2>{t('settings.transcription')}</h2>
+      <label className="field">
+        <span>{t('settings.howToTranscribe')}</span>
         <select
           value={s.transcribe.mode}
           onChange={(e) =>
             update({ transcribe: { ...s.transcribe, mode: e.target.value as 'api' | 'local' } })
           }
         >
-          <option value="api">Servizio online (API, veloce e preciso)</option>
-          <option value="local">Sul dispositivo (gratis, privato, offline)</option>
+          <option value="api">{t('settings.modeApi')}</option>
+          <option value="local">{t('settings.modeLocal')}</option>
         </select>
       </label>
 
       {s.transcribe.mode === 'local' ? (
         <>
           <label className="field">
-            <span>Modello Whisper locale</span>
+            <span>{t('settings.localModel')}</span>
             <select
               value={s.transcribe.localModel}
               onChange={(e) =>
                 update({
-                  transcribe: {
-                    ...s.transcribe,
-                    localModel: e.target.value as typeof s.transcribe.localModel,
-                  },
+                  transcribe: { ...s.transcribe, localModel: e.target.value as LocalWhisperSize },
                 })
               }
             >
               {Object.entries(LOCAL_MODELS).map(([key, m]) => (
                 <option key={key} value={key}>
-                  {m.label}
+                  {t(m.labelKey)}
                 </option>
               ))}
             </select>
           </label>
-          <div className="info-box">
-            La trascrizione avviene interamente sul tuo dispositivo: nessun costo, nessuna chiave,
-            l'audio non lascia mai il telefono. Alla prima trascrizione viene scaricato il modello
-            (serve rete solo quella volta). È più lenta di un servizio online: adatta a note brevi,
-            per registrazioni lunghe conviene la modalità API.
-          </div>
+          <div className="info-box">{t('settings.localInfo')}</div>
         </>
       ) : (
         <>
-          <p className="muted">
-            Funziona con OpenAI, Groq o un server whisper sulla tua rete (es. whisper.cpp sul PC).
-          </p>
+          <p className="muted">{t('settings.apiInfo')}</p>
           <label className="field">
-            <span>URL base (es. https://api.openai.com/v1 oppure http://192.168.1.10:8080/v1)</span>
+            <span>{t('settings.baseUrl')}</span>
             <input
               type="url"
               value={s.transcribe.baseUrl}
@@ -93,7 +104,7 @@ export default function Settings() {
             />
           </label>
           <label className="field">
-            <span>API key (lascia vuoto se il server locale non la richiede)</span>
+            <span>{t('settings.apiKeyOptional')}</span>
             <input
               type="password"
               value={s.transcribe.apiKey}
@@ -106,7 +117,7 @@ export default function Settings() {
       <div className="row">
         {s.transcribe.mode === 'api' && (
           <label className="field" style={{ flex: 1 }}>
-            <span>Modello (es. whisper-1, whisper-large-v3)</span>
+            <span>{t('settings.transcribeModel')}</span>
             <input
               type="text"
               value={s.transcribe.model}
@@ -114,33 +125,36 @@ export default function Settings() {
             />
           </label>
         )}
-        <label className="field" style={{ width: 140 }}>
-          <span>Lingua</span>
+        <label className="field" style={{ width: 180 }}>
+          <span>{t('settings.transcribeLang')}</span>
           <select
             value={s.transcribe.language}
             onChange={(e) => update({ transcribe: { ...s.transcribe, language: e.target.value } })}
           >
-            <option value="it">Italiano</option>
-            <option value="">Auto</option>
-            <option value="en">Inglese</option>
-            <option value="fr">Francese</option>
-            <option value="de">Tedesco</option>
-            <option value="es">Spagnolo</option>
+            <option value="it">{t('settings.langIt')}</option>
+            <option value="en">{t('settings.langEn')}</option>
+            <option value="">{t('settings.langAuto')}</option>
+            <option value="fr">{t('settings.langFr')}</option>
+            <option value="de">{t('settings.langDe')}</option>
+            <option value="es">{t('settings.langEs')}</option>
           </select>
         </label>
       </div>
 
-      <h2>Intelligenza artificiale (riepiloghi, titoli, mappe, Ask)</h2>
+      <h2>{t('settings.ai')}</h2>
       <label className="field">
-        <span>Provider</span>
+        <span>{t('settings.provider')}</span>
         <select
           value={s.llm.provider}
           onChange={(e) => {
             const provider = e.target.value as SettingsData['llm']['provider']
+            const nextModels = modelsFor(provider)
             update({
               llm: {
                 ...s.llm,
                 provider,
+                // il modello di un provider non ha senso sull'altro: si riparte dal consigliato
+                model: provider === 'anthropic' ? 'claude-sonnet-5' : nextModels[0].id,
                 baseUrl:
                   provider === 'anthropic'
                     ? 'https://api.anthropic.com'
@@ -151,16 +165,15 @@ export default function Settings() {
             })
           }}
         >
-          <option value="anthropic">Anthropic (Claude)</option>
-          <option value="openai">OpenAI-compatible (LM Studio, Ollama, OpenAI…)</option>
+          <option value="anthropic">{t('settings.providerAnthropic')}</option>
+          <option value="openai">{t('settings.providerOpenai')}</option>
         </select>
       </label>
       <label className="field">
         <span>
-          URL base{' '}
           {s.llm.provider === 'anthropic'
-            ? '(https://api.anthropic.com)'
-            : '(es. http://localhost:11434/v1 per Ollama sul PC)'}
+            ? t('settings.aiBaseUrlAnthropic')
+            : t('settings.aiBaseUrlOpenai')}
         </span>
         <input
           type="url"
@@ -169,7 +182,7 @@ export default function Settings() {
         />
       </label>
       <label className="field">
-        <span>API key</span>
+        <span>{t('settings.apiKey')}</span>
         <input
           type="password"
           value={s.llm.apiKey}
@@ -177,17 +190,37 @@ export default function Settings() {
           onChange={(e) => update({ llm: { ...s.llm, apiKey: e.target.value.trim() } })}
         />
       </label>
+      <label className="field">
+        <span>{t('settings.aiModel')}</span>
+        <select
+          value={customModel ? '__custom__' : s.llm.model}
+          onChange={(e) => {
+            const value = e.target.value
+            update({ llm: { ...s.llm, model: value === '__custom__' ? '' : value } })
+          }}
+        >
+          {models.map((m) => (
+            <option key={m.id} value={m.id}>
+              {t(m.labelKey)}
+            </option>
+          ))}
+          <option value="__custom__">{t('settings.customModel')}</option>
+        </select>
+      </label>
       <div className="row">
-        <label className="field" style={{ flex: 1 }}>
-          <span>Modello (es. claude-sonnet-5, llama3.1)</span>
-          <input
-            type="text"
-            value={s.llm.model}
-            onChange={(e) => update({ llm: { ...s.llm, model: e.target.value.trim() } })}
-          />
-        </label>
-        <label className="field" style={{ width: 120 }}>
-          <span>Max token</span>
+        {customModel && (
+          <label className="field" style={{ flex: 1 }}>
+            <span>{t('settings.customModelField')}</span>
+            <input
+              type="text"
+              value={s.llm.model}
+              autoFocus
+              onChange={(e) => update({ llm: { ...s.llm, model: e.target.value.trim() } })}
+            />
+          </label>
+        )}
+        <label className="field" style={{ width: 140 }}>
+          <span>{t('settings.maxTokens')}</span>
           <input
             type="number"
             value={s.llm.maxTokens}
@@ -197,26 +230,17 @@ export default function Settings() {
         </label>
       </div>
 
-      {mixedContentRisk && (
-        <div className="info-box">
-          Attenzione: stai usando l'app in HTTPS con un endpoint http:// — il browser bloccherà la
-          richiesta ("mixed content"). Soluzioni: esponi il server locale in HTTPS, oppure apri
-          l'app in HTTP dal PC. I dettagli sono nel README del progetto.
-        </div>
-      )}
+      {mixedContentRisk && <div className="info-box">{t('settings.mixedContent')}</div>}
 
       <div className="row" style={{ marginTop: 16 }}>
         <button className="btn-primary" onClick={() => void save()}>
-          Salva impostazioni
+          {t('settings.saveSettings')}
         </button>
-        {saved && <span style={{ color: 'var(--ok)' }}>Salvate ✓</span>}
+        {saved && <span style={{ color: 'var(--ok)' }}>{t('settings.saved')}</span>}
       </div>
 
-      <h2>Backup</h2>
-      <p className="muted">
-        Il backup contiene note, audio, template e conversazioni in un unico file. Le chiavi API
-        non sono incluse: dopo un ripristino vanno reinserite qui.
-      </p>
+      <h2>{t('settings.backup')}</h2>
+      <p className="muted">{t('settings.backupInfo')}</p>
       <div className="row">
         <button
           className="btn-ghost"
@@ -232,16 +256,16 @@ export default function Settings() {
                 a.download = `voicenotes-backup-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.json`
                 a.click()
                 setTimeout(() => URL.revokeObjectURL(a.href), 10_000)
-                setBackupMsg('Backup scaricato.')
+                setBackupMsg(t('settings.backupDownloaded'))
               })
-              .catch(() => setBackupMsg('Errore durante il backup.'))
+              .catch(() => setBackupMsg(t('settings.backupError')))
               .finally(() => setBackupBusy(false))
           }}
         >
-          {backupBusy ? 'Preparazione…' : 'Esporta backup'}
+          {backupBusy ? t('settings.preparing') : t('settings.exportBackup')}
         </button>
         <button className="btn-ghost" disabled={backupBusy} onClick={() => importRef.current?.click()}>
-          Importa backup
+          {t('settings.importBackup')}
         </button>
         <input
           ref={importRef}
@@ -255,9 +279,9 @@ export default function Settings() {
             setBackupBusy(true)
             setBackupMsg('')
             void importBackup(file)
-              .then((r) => setBackupMsg(`Importate ${r.note} note.`))
+              .then((r) => setBackupMsg(t('settings.backupImported', { n: r.note })))
               .catch((err: unknown) =>
-                setBackupMsg(err instanceof Error ? err.message : 'Errore durante l\'importazione.'),
+                setBackupMsg(err instanceof Error ? err.message : t('settings.backupImportError')),
               )
               .finally(() => setBackupBusy(false))
           }}
@@ -265,15 +289,14 @@ export default function Settings() {
         {backupMsg && <span className="muted">{backupMsg}</span>}
       </div>
 
-      <h2>Template di riepilogo</h2>
-      <p className="muted">Crea o modifica i template usati per i riepiloghi.</p>
+      <h2>{t('settings.templates')}</h2>
+      <p className="muted">{t('settings.templatesInfo')}</p>
       <Link to="/template">
-        <button className="btn-ghost">Gestisci template</button>
+        <button className="btn-ghost">{t('settings.manageTemplates')}</button>
       </Link>
 
       <p className="muted" style={{ marginTop: 24 }}>
-        Le chiavi API restano salvate solo su questo dispositivo e non vengono mai inviate altrove:
-        il browser chiama direttamente i provider che configuri qui.
+        {t('settings.keysNote')}
       </p>
     </div>
   )

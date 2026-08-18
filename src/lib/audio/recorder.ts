@@ -1,6 +1,7 @@
 import { db } from '../db'
 import { defaultNoteTitle } from '../format'
 import type { Note } from '../types'
+import { t } from '../i18n'
 
 /** Sceglie il miglior formato supportato: webm/opus, poi mp4 (iOS Safari). */
 export function pickMimeType(): string {
@@ -76,11 +77,11 @@ export class ChunkedRecorder {
         const write = db.chunks
           .add({ noteId: this.noteId, index, blob: e.data })
           .then(() => db.notes.update(this.noteId, { durationSec: this.elapsedSec() }))
-          .catch(() => this.cb.onError?.('Errore nel salvataggio di un blocco audio'))
+          .catch(() => this.cb.onError?.(t('err.chunkSave')))
         this.pendingWrites.push(write)
       }
     }
-    this.recorder.onerror = () => this.cb.onError?.('Errore del registratore')
+    this.recorder.onerror = () => this.cb.onError?.(t('err.recorder'))
 
     this.startedAt = Date.now()
     this.recorder.start(CHUNK_MS)
@@ -94,7 +95,7 @@ export class ChunkedRecorder {
   /** Ferma la registrazione, salva l'ultimo chunk e chiude la nota. */
   async stop(): Promise<string> {
     const rec = this.recorder
-    if (!rec) throw new Error('Registrazione non attiva')
+    if (!rec) throw new Error(t('err.notRecording'))
     const stopped = new Promise<void>((resolve) => {
       rec.onstop = () => resolve()
     })
@@ -218,7 +219,7 @@ function readAudioDuration(blob: Blob): Promise<number> {
     }
     audio.onerror = () => {
       URL.revokeObjectURL(url)
-      reject(new Error('Durata non leggibile'))
+      reject(new Error(t('err.durationUnreadable')))
     }
     audio.src = url
   })

@@ -1,108 +1,130 @@
 # VoiceNotes
 
-Registratore AI per smartphone, in stile Plaud ma senza hardware dedicato: una web app
-(PWA) che registra dal microfono del telefono, trascrive, riassume, disegna mappe mentali
-e risponde a domande sulle tue note. Tutto resta sul dispositivo: nessun server proprietario,
-le API di trascrizione e AI le scegli tu nelle Impostazioni.
+*[Leggi in italiano](README.it.md)*
 
-## App online (installabile su telefono)
+An AI voice recorder for your phone — Plaud-style, but with no dedicated hardware. VoiceNotes
+is a mobile-first web app (PWA) that records from your phone's microphone, transcribes,
+summarizes, draws mind maps, and answers questions about your own notes. Everything stays on
+your device: there is no backend of ours, and you choose the transcription and AI providers
+yourself in Settings.
+
+**Available in English and Italian** — switch anytime in Settings.
+
+## Live app (installable on your phone)
 
 **<https://nicgiu91.github.io/voicenotes/>**
 
-Pubblicata automaticamente su GitHub Pages a ogni push su `master`. Su iPhone aprila con
-Safari → Condividi → "Aggiungi a Home"; su Android con Chrome → menu ⋮ → "Installa app".
+Published automatically to GitHub Pages on every push to `master`. On iPhone open it in Safari
+→ Share → "Add to Home Screen"; on Android in Chrome → ⋮ menu → "Install app".
 
-## Avvio rapido (sul PC)
+## Features
 
-Doppio clic su **`avvia-voicenotes.bat`**, poi:
+- **Recording** — big start/stop button, timer, live level meter. Audio is written to
+  IndexedDB in 30-second chunks, so a crash or a closed tab never loses a recording: on the
+  next launch the note reappears as "recovered". You can also import existing audio files.
+- **Transcription** — either on your device (Whisper via Transformers.js: free, private,
+  works offline) or through any OpenAI-compatible API (OpenAI, Groq, or a whisper server on
+  your own network). Long recordings are split into 10-minute segments and stitched back
+  together with correct timestamps. Timestamps in the transcript are clickable and seek the
+  audio.
+- **AI** — summaries from four built-in templates (Meeting, Notes/Idea, Lecture/Training,
+  Generic) plus your own custom templates; automatic titles and suggested tags; best-effort
+  speaker separation; an interactive mind map (Markmap) with copyable Mermaid source; and
+  **Ask**, a chat grounded in one or more of your selected notes.
+- **Export** — a single note as Obsidian-ready Markdown (YAML frontmatter + summaries +
+  mermaid mind map + timestamped transcript), the original audio, Web Share where available,
+  and a full JSON backup of everything.
 
-- dal PC: apri <https://localhost:4000>
-- dal telefono (stessa rete Wi-Fi): apri `https://IP-DEL-PC:4000` — l'indirizzo compare
-  nella finestra nera dopo l'avvio (riga "Network"). Al primo accesso il telefono mostra un
-  avviso sul certificato: scegli "Avanzate → Procedi". Serve perché il microfono funziona
-  solo su connessioni sicure (HTTPS).
+## Running it locally
 
-In alternativa, da terminale: `npm install` e poi `npm run dev` (HTTP semplice, va bene solo
-su localhost).
+Double-click **`avvia-voicenotes.bat`** (Windows), then:
 
-## Installare come app (PWA)
+- from the PC: <https://localhost:4000>
+- from your phone (same Wi-Fi): `https://YOUR-PC-IP:4000` — the address appears in the console
+  window after startup ("Network" line). The phone will warn about the certificate: choose
+  "Advanced → Proceed". This is needed because microphone access requires a secure connection,
+  and the PC's certificate is self-signed.
 
-- **Android (Chrome):** menu ⋮ → "Aggiungi a schermata Home" / "Installa app".
-- **iPhone (Safari):** pulsante Condividi → "Aggiungi a Home".
+From a terminal: `npm install`, then `npm run dev` (plain HTTP, fine on localhost only).
 
-Nota: con il certificato autofirmato del `.bat`, il telefono può usare l'app ma il
-funzionamento offline completo (service worker) richiede un certificato valido. Per la PWA
-"vera" conviene pubblicare la cartella `dist` (dopo `npm run build`) su un hosting statico
-gratuito come GitHub Pages o Netlify: da lì l'app si installa e funziona offline senza avvisi.
+## Configuring transcription
 
-## Configurare la trascrizione
+Settings → Transcription. Two modes:
 
-Impostazioni → Trascrizione. Due modalità:
+**On this device (free, private, offline).** Whisper runs directly in the browser
+(Transformers.js / WebAssembly): no API, no keys, and the audio never leaves the phone. The
+model is downloaded on first use (Fast ~40 MB, Balanced ~80 MB, Accurate ~250 MB), and after
+that it works offline too. It is slow — on a phone it can take longer than the audio itself —
+so it suits short notes; long meetings are better served by the API mode.
 
-**Sul dispositivo (gratis, privato, offline).** Whisper gira direttamente nel browser
-(Transformers.js/WebAssembly): niente API, niente chiavi, l'audio non lascia mai il telefono.
-Alla prima trascrizione scarica il modello (Veloce ~40 MB, Equilibrato ~80 MB, Preciso
-~250 MB), poi funziona anche offline. È lenta — sul telefono può servire più tempo della
-durata dell'audio stesso — quindi è adatta a note brevi; per le riunioni lunghe conviene la
-modalità API.
+**Online service (API).** Needs an **OpenAI-compatible** endpoint:
 
-**Servizio online (API).** Serve un endpoint **OpenAI-compatible**:
-
-| Provider | URL base | Note |
+| Provider | Base URL | Notes |
 |---|---|---|
-| OpenAI | `https://api.openai.com/v1` | modello `whisper-1`, serve API key |
-| Groq | `https://api.groq.com/openai/v1` | modello `whisper-large-v3`, veloce ed economico |
-| whisper.cpp sul PC | `http://IP-DEL-PC:8080/v1` | gratuito, vedi CORS più sotto |
+| OpenAI | `https://api.openai.com/v1` | model `whisper-1`, API key required |
+| Groq | `https://api.groq.com/openai/v1` | model `whisper-large-v3`, fast and cheap |
+| whisper.cpp on your PC | `http://YOUR-PC-IP:8080/v1` | free, see CORS below |
 
-## Configurare l'AI (riepiloghi, titoli, mappe, Ask)
+## Configuring the AI
 
-Impostazioni → Intelligenza artificiale:
+Settings → Artificial intelligence. Pick a provider, then pick a model from the dropdown —
+each option states its speed/quality trade-off and its token cost:
 
-- **Anthropic (Claude):** URL `https://api.anthropic.com`, la tua API key, modello ad es.
-  `claude-sonnet-5`.
-- **OpenAI-compatible:** qualunque server locale (LM Studio, Ollama con
-  `http://IP-DEL-PC:11434/v1`, llama.cpp server) o provider cloud compatibile.
+| Model | Input / output per million tokens | Good for |
+|---|---|---|
+| Claude Haiku 4.5 | $1 / $5 | fast, cheap, everyday notes |
+| Claude Sonnet 5 | $3 / $15 | balanced — the recommended default |
+| Claude Opus 5 | $5 / $25 | top quality on demanding material |
+| Claude Opus 4.8 | $5 / $25 | previous generation |
+| Claude Fable 5 | $10 / $50 | most capable, and priced accordingly |
 
-Le chiavi API restano solo nel browser (IndexedDB) e non vengono mai inviate altrove.
+Choosing **OpenAI-compatible** instead lets you point at any local server (Ollama at
+`http://YOUR-PC-IP:11434/v1`, LM Studio, llama.cpp) or another cloud provider; the dropdown
+offers common local models, and "Other" accepts any model name you type.
 
-## Server locali: CORS e mixed content
+API keys stay in the browser (IndexedDB) and are never sent anywhere else.
 
-Il browser chiama le API direttamente, quindi il server sulla LAN deve accettare richieste
-dall'origine della PWA (CORS):
+## Local servers: CORS and mixed content
 
-- **whisper.cpp (`llama-server`/`whisper-server`):** di solito già invia
-  `Access-Control-Allow-Origin: *`; se no, avvialo dietro un proxy che lo aggiunga.
-- **Ollama:** avvia con `OLLAMA_ORIGINS=*` (variabile d'ambiente) per consentire la PWA.
-- **LM Studio:** nelle impostazioni del server attiva l'opzione CORS.
+The browser calls these APIs directly, so a server on your LAN must accept requests from the
+PWA's origin (CORS):
 
-**Mixed content:** se l'app gira in HTTPS e l'endpoint è `http://…`, il browser blocca la
-richiesta. Soluzioni: usare l'app in HTTP dal PC (`npm run dev` su localhost), oppure esporre
-il server locale in HTTPS (es. con Caddy o un tunnel).
+- **whisper.cpp** (`llama-server` / `whisper-server`): usually already sends
+  `Access-Control-Allow-Origin: *`; if not, put it behind a proxy that adds the header.
+- **Ollama**: start it with `OLLAMA_ORIGINS=*`.
+- **LM Studio**: enable the CORS option in the server settings.
 
-## Limiti noti su iPhone (iOS Safari)
+**Mixed content:** if the app runs over HTTPS and the endpoint is `http://…`, the browser
+blocks the request. Either use the app over HTTP from the PC (`npm run dev` on localhost), or
+serve the local server over HTTPS (e.g. with Caddy or a tunnel).
 
-- **Formato:** iOS non supporta `audio/webm`; l'app usa automaticamente `audio/mp4`.
-- **Blocco schermo:** l'app chiede il "wake lock" per tenere lo schermo acceso, ma iOS può
-  comunque sospendere la pagina se la blocchi o cambi app: la registrazione può fermarsi.
-  I pezzi già salvati (ogni 30 secondi) non si perdono mai: al riavvio la nota compare come
-  "recuperata". Consiglio pratico: durante registrazioni lunghe lascia lo schermo acceso
-  sull'app.
-- **PWA:** su iOS l'app installata ha meno permessi di Safari; se il microfono non parte,
-  prova dalla scheda Safari normale.
+## Known limits on iPhone (iOS Safari)
 
-## Come sono salvati i dati
+- **Format:** iOS does not support `audio/webm`; the app automatically falls back to
+  `audio/mp4`.
+- **Screen lock:** the app requests a wake lock to keep the screen on, but iOS may still
+  suspend the page if you lock it or switch apps, which can stop the recording. Chunks already
+  written (every 30 seconds) are never lost — the note comes back as "recovered" on the next
+  launch. In practice: for long recordings, leave the screen on with the app in front.
+- **PWA:** an installed PWA has fewer permissions than Safari on iOS; if the microphone will
+  not start, try from a normal Safari tab.
 
-Tutto in IndexedDB del browser: audio (a blocchi da 30 s), trascrizioni, riepiloghi, mappe,
-chat, template e impostazioni. L'app chiede lo "storage persistente" per ridurre il rischio
-di pulizia automatica. Per sicurezza usa **Impostazioni → Esporta backup** (file JSON con
-tutto dentro, chiavi API escluse). L'export `.md` di ogni nota è pronto per Obsidian
-(frontmatter YAML + mappa in blocco `mermaid`).
+## How data is stored
 
-## Sviluppo
+Everything lives in the browser's IndexedDB: audio (in 30-second chunks), transcripts,
+summaries, mind maps, chats, templates, and settings. The app requests persistent storage to
+reduce the risk of automatic eviction. For safety use **Settings → Export backup** (a single
+JSON file with everything except API keys). Each note's `.md` export is Obsidian-ready
+(YAML frontmatter + a `mermaid` mind map block).
 
-- `npm run dev` — server di sviluppo (porta 4000; con `VOICENOTES_HTTPS=1` usa HTTPS)
-- `npm test` — unit test (vitest) della logica: merge trascrizioni, export, mappa, contesto Ask
-- `npm run build` — build statica in `dist/` (deployabile ovunque, base `./`)
+## Development
 
-Struttura: `src/lib` (audio, trascrizione, LLM, export, DB), `src/pages`, `src/components`.
-I prompt dei template sono file modificabili in `src/lib/llm/prompts/`.
+- `npm run dev` — dev server on port 4000 (`VOICENOTES_HTTPS=1` serves it over HTTPS)
+- `npm test` — unit tests (vitest): transcript merging, export, mind map, Ask context, i18n
+- `npm run build` — static build in `dist/` (deployable anywhere; base `./`)
+
+Layout: `src/lib` (audio, transcription, LLM, export, DB, i18n), `src/pages`,
+`src/components`. Summary-template prompts are editable files under `src/lib/llm/prompts/`,
+each exporting an Italian and an English version. UI strings live in
+`src/lib/i18n/it.ts` and `src/lib/i18n/en.ts`; a test enforces that both files carry exactly
+the same keys and placeholders.

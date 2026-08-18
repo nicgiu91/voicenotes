@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { db, getSettings } from '../lib/db'
 import type { Note } from '../lib/types'
 import { chatLLM, llmConfigured } from '../lib/llm/client'
-import { tagPrompt } from '../lib/llm/prompts'
+import { prompt, tagPrompt } from '../lib/llm/prompts'
+import { useT } from '../lib/i18n'
 
 interface Props {
   note: Note
@@ -11,6 +12,7 @@ interface Props {
 
 /** Tag manuali + suggerimenti AI per una nota. */
 export default function TagEditor({ note, onChanged }: Props) {
+  const { t } = useT()
   const [draft, setDraft] = useState('')
   const [suggesting, setSuggesting] = useState(false)
   const [suggested, setSuggested] = useState<string[]>([])
@@ -25,7 +27,7 @@ export default function TagEditor({ note, onChanged }: Props) {
     const clean = tag.trim().toLowerCase().replace(/^#/, '')
     if (!clean) return
     await saveTags([...note.tags, clean])
-    setSuggested((cur) => cur.filter((t) => t !== clean))
+    setSuggested((cur) => cur.filter((x) => x !== clean))
     setDraft('')
   }
 
@@ -34,19 +36,23 @@ export default function TagEditor({ note, onChanged }: Props) {
     setSuggesting(true)
     try {
       const settings = await getSettings()
-      if (!llmConfigured(settings.llm)) throw new Error('Configura prima il provider AI nelle Impostazioni.')
+      if (!llmConfigured(settings.llm)) throw new Error(t('err.llmConfigure'))
       const text = note.transcript?.text ?? ''
-      if (!text) throw new Error('Serve prima la trascrizione.')
-      const answer = await chatLLM(tagPrompt, [{ role: 'user', content: text.slice(0, 8000) }], settings.llm)
+      if (!text) throw new Error(t('tags.needTranscript'))
+      const answer = await chatLLM(
+        prompt(tagPrompt),
+        [{ role: 'user', content: text.slice(0, 8000) }],
+        settings.llm,
+      )
       const tags = answer
         .split(/[,\n]/)
-        .map((t) => t.trim().toLowerCase().replace(/^#/, ''))
-        .filter((t) => t && t.length <= 30 && !note.tags.includes(t))
+        .map((x) => x.trim().toLowerCase().replace(/^#/, ''))
+        .filter((x) => x && x.length <= 30 && !note.tags.includes(x))
         .slice(0, 5)
-      if (tags.length === 0) throw new Error('Nessun tag suggerito.')
+      if (tags.length === 0) throw new Error(t('tags.noSuggestions'))
       setSuggested(tags)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Errore nel suggerimento tag')
+      setError(e instanceof Error ? e.message : t('err.tagGeneric'))
     } finally {
       setSuggesting(false)
     }
@@ -55,23 +61,23 @@ export default function TagEditor({ note, onChanged }: Props) {
   return (
     <div>
       <div className="row" style={{ marginBottom: 8 }}>
-        {note.tags.map((t) => (
-          <span key={t} className="tag-chip">
-            #{t}
+        {note.tags.map((tag) => (
+          <span key={tag} className="tag-chip">
+            #{tag}
             <button
-              onClick={() => void saveTags(note.tags.filter((x) => x !== t))}
-              aria-label={`Rimuovi tag ${t}`}
+              onClick={() => void saveTags(note.tags.filter((x) => x !== tag))}
+              aria-label={t('tags.removeLabel', { tag })}
             >
               ✕
             </button>
           </span>
         ))}
-        {note.tags.length === 0 && <span className="muted">Nessun tag.</span>}
+        {note.tags.length === 0 && <span className="muted">{t('tags.none')}</span>}
       </div>
       <div className="row">
         <input
           type="text"
-          placeholder="Nuovo tag…"
+          placeholder={t('tags.new')}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
@@ -80,20 +86,20 @@ export default function TagEditor({ note, onChanged }: Props) {
           style={{ flex: 1, maxWidth: 220 }}
         />
         <button className="btn-ghost btn-small" onClick={() => void addTag(draft)} disabled={!draft.trim()}>
-          Aggiungi
+          {t('common.add')}
         </button>
         {note.transcript && (
           <button className="btn-ghost btn-small" onClick={() => void suggest()} disabled={suggesting}>
-            {suggesting ? 'Suggerimento…' : 'Suggerisci con AI'}
+            {suggesting ? t('tags.suggesting') : t('tags.suggest')}
           </button>
         )}
       </div>
       {suggested.length > 0 && (
         <div className="row" style={{ marginTop: 8 }}>
-          <span className="muted">Suggeriti:</span>
-          {suggested.map((t) => (
-            <button key={t} className="btn-ghost btn-small" onClick={() => void addTag(t)}>
-              + #{t}
+          <span className="muted">{t('tags.suggested')}</span>
+          {suggested.map((tag) => (
+            <button key={tag} className="btn-ghost btn-small" onClick={() => void addTag(tag)}>
+              + #{tag}
             </button>
           ))}
         </div>

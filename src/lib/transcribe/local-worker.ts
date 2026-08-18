@@ -33,10 +33,8 @@ self.onmessage = async (e: MessageEvent<JobMessage>) => {
             const key = `${info.file}-${Math.floor(pct / 5)}`
             if (!seen.has(key)) {
               seen.add(key)
-              self.postMessage({
-                type: 'progress',
-                message: `Scaricamento del modello (solo la prima volta)… ${pct}%`,
-              })
+              // niente testo qui: il worker non conosce la lingua, la UI traduce
+              self.postMessage({ type: 'progress', stage: 'download', pct })
             }
           }
         },
@@ -44,10 +42,7 @@ self.onmessage = async (e: MessageEvent<JobMessage>) => {
       loadedModel = model
     }
 
-    self.postMessage({
-      type: 'progress',
-      message: 'Trascrizione sul dispositivo in corso… (può richiedere alcuni minuti)',
-    })
+    self.postMessage({ type: 'progress', stage: 'transcribe' })
 
     const options: Record<string, unknown> = {
       chunk_length_s: 30,

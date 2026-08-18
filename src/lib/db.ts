@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie'
 import type { AudioChunk, ChatThread, Note, SettingsData, Template } from './types'
+import { detectLang, setLang } from './i18n'
 
 interface SettingsRow {
   key: string
@@ -29,6 +30,7 @@ export const db = new VoiceNotesDB()
 
 export const defaultSettings: SettingsData = {
   privacyAccepted: false,
+  lang: 'it',
   transcribe: {
     mode: 'api',
     baseUrl: 'https://api.openai.com/v1',
@@ -48,10 +50,11 @@ export const defaultSettings: SettingsData = {
 
 export async function getSettings(): Promise<SettingsData> {
   const row = await db.settings.get('app')
-  if (!row) return structuredClone(defaultSettings)
+  if (!row) return { ...structuredClone(defaultSettings), lang: detectLang() }
   const saved = row.value as Partial<SettingsData>
   return {
     ...structuredClone(defaultSettings),
+    lang: saved.lang ?? detectLang(),
     ...saved,
     transcribe: { ...defaultSettings.transcribe, ...saved.transcribe },
     llm: { ...defaultSettings.llm, ...saved.llm },
@@ -60,6 +63,24 @@ export async function getSettings(): Promise<SettingsData> {
 
 export async function saveSettings(value: SettingsData): Promise<void> {
   await db.settings.put({ key: 'app', value })
+  setLang(value.lang)
+}
+
+/** All'avvio applica la lingua salvata (o quella del browser). */
+export async function applySavedLanguage(): Promise<void> {
+  const settings = await getSettings()
+  setLang(settings.lang)
+}
+
+/**
+ * La lingua si salva da sola appena scelta: senza questo, qualunque altro
+ * salvataggio delle impostazioni (es. accettare il promemoria privacy)
+ * riporterebbe l'interfaccia alla lingua ancora memorizzata.
+ */
+export async function saveLanguage(lang: SettingsData['lang']): Promise<void> {
+  const settings = await getSettings()
+  await db.settings.put({ key: 'app', value: { ...settings, lang } })
+  setLang(lang)
 }
 
 /** Chiede al browser di non cancellare i dati (audio incluso) quando lo spazio scarseggia. */

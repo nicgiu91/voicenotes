@@ -1,6 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { noteToMarkdown } from '../src/lib/export/markdown'
 import type { Note } from '../src/lib/types'
+import { setLang } from '../src/lib/i18n'
+
+afterEach(() => setLang('it'))
 
 const baseNote: Note = {
   id: 'n1',
@@ -40,6 +43,17 @@ describe('noteToMarkdown', () => {
     expect(md).toContain('root((Tema))')
     expect(md).toContain('[00:00] Prima frase.')
     expect(md).toContain('[01:05] Seconda frase dopo pausa.')
+  })
+
+  it('usa le etichette inglesi quando la lingua è inglese', () => {
+    setLang('en')
+    const out = noteToMarkdown(baseNote, { riunione: 'Meeting' })
+    expect(out).toContain('title: "Riunione \\"importante\\""')
+    expect(out).toContain('duration: 2:05')
+    expect(out).toContain('source: VoiceNotes')
+    expect(out).toContain('## Summary — Meeting')
+    expect(out).toContain('## Transcript')
+    expect(out).toContain('## Mind map')
   })
 
   it('funziona anche con nota senza trascrizione', () => {

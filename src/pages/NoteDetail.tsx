@@ -1,22 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { db, deleteNoteCompletely, getSettings } from '../lib/db'
-import type { Note } from '../lib/types'
+import type { Note, Template } from '../lib/types'
 import { assembleAudio, audioExtension } from '../lib/audio/assemble'
-import { formatDate, formatDuration, slugify } from '../lib/format'
+import { formatDate, formatDuration, isDefaultNoteTitle, slugify } from '../lib/format'
 import { transcribeNote } from '../lib/transcribe/client'
 import { chatLLM, llmConfigured } from '../lib/llm/client'
-import { diarizzazionePrompt, mindmapPrompt, titoloPrompt } from '../lib/llm/prompts'
+import { diarizzazionePrompt, mindmapPrompt, prompt, titoloPrompt } from '../lib/llm/prompts'
 import { markdownToMermaidMindmap } from '../lib/llm/mindmap'
 import TranscriptView from '../components/TranscriptView'
 import MindMapView from '../components/MindMapView'
 import Markdown from '../components/Markdown'
 import { loadAllTemplates } from './Templates'
-import type { Template } from '../lib/types'
 import { noteToMarkdown } from '../lib/export/markdown'
 import TagEditor from '../components/TagEditor'
+import { useT } from '../lib/i18n'
 
 export default function NoteDetail() {
+  const { t } = useT()
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const [note, setNote] = useState<Note | null>(null)
@@ -50,14 +51,14 @@ export default function NoteDetail() {
         url = URL.createObjectURL(blob)
         setAudioUrl(url)
       })
-      .catch(() => setAudioError('Audio non disponibile per questa nota.'))
+      .catch(() => setAudioError(t('note.audioUnavailable')))
     return () => {
       if (url) URL.revokeObjectURL(url)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
-  if (!note) return <p className="muted">Nota non trovata.</p>
+  if (!note) return <p className="muted">{t('note.notFound')}</p>
 
   const saveTitle = async () => {
     const title = titleDraft.trim()
@@ -67,7 +68,7 @@ export default function NoteDetail() {
   }
 
   const removeNote = async () => {
-    if (!confirm(`Eliminare definitivamente "${note.title}"?\nAudio e trascrizione andranno persi.`)) return
+    if (!confirm(t('note.deleteConfirm', { title: note.title }))) return
     await deleteNoteCompletely(note.id)
     navigate('/')
   }
@@ -81,8 +82,7 @@ export default function NoteDetail() {
     setTimeout(() => URL.revokeObjectURL(a.href), 10_000)
   }
 
-  const templateNamesRecord = () =>
-    Object.fromEntries(templates.map((t) => [t.id, t.name]))
+  const templateNamesRecord = () => Object.fromEntries(templates.map((x) => [x.id, x.name]))
 
   const exportMarkdown = () => {
     const md = noteToMarkdown(note, templateNamesRecord())
@@ -122,11 +122,11 @@ export default function NoteDetail() {
       const settings = await getSettings()
       const transcript = await transcribeNote(note.id, settings.transcribe, setProgress)
       // titolo automatico: solo se il titolo è ancora quello predefinito
-      if (note.title.startsWith('Registrazione ') && llmConfigured(settings.llm) && transcript.text) {
+      if (isDefaultNoteTitle(note.title) && llmConfigured(settings.llm) && transcript.text) {
         try {
-          setProgress('Generazione del titolo…')
+          setProgress(t('transcribe.titleGenerating'))
           const title = await chatLLM(
-            titoloPrompt,
+            prompt(titoloPrompt),
             [{ role: 'user', content: transcript.text.slice(0, 8000) }],
             settings.llm,
           )
@@ -137,25 +137,26 @@ export default function NoteDetail() {
       }
       await reload()
     } catch (e) {
-      setTranscribeError(e instanceof Error ? e.message : 'Errore di trascrizione')
+      setTranscribeError(e instanceof Error ? e.message : t('err.transcribeGeneric'))
     } finally {
       setTranscribing(false)
       setProgress('')
     }
   }
 
-  const runLLM = async (busyLabel: string, fn: (llm: Awaited<ReturnType<typeof getSettings>>['llm']) => Promise<void>) => {
+  const runLLM = async (
+    busyLabel: string,
+    fn: (llm: Awaited<ReturnType<typeof getSettings>>['llm']) => Promise<void>,
+  ) => {
     setAiError('')
     setAiBusy(busyLabel)
     try {
       const settings = await getSettings()
-      if (!llmConfigured(settings.llm)) {
-        throw new Error('Configura prima il provider AI nelle Impostazioni.')
-      }
+      if (!llmConfigured(settings.llm)) throw new Error(t('err.llmConfigure'))
       await fn(settings.llm)
       await reload()
     } catch (e) {
-      setAiError(e instanceof Error ? e.message : 'Errore del provider AI')
+      setAiError(e instanceof Error ? e.message : t('err.llmGeneric'))
     } finally {
       setAiBusy('')
     }
@@ -165,11 +166,14 @@ export default function NoteDetail() {
 
   const generateSummaries = () =>
     runLLM('riepiloghi', async (llm) => {
-      const chosen = templates.filter((t) => pickedTemplates.includes(t.id))
+      const chosen = templates.filter((x) => pickedTemplates.includes(x.id))
       const summaries = { ...(note.summaries ?? {}) }
-      for (const t of chosen) {
-        const result = await chatLLM(t.prompt, [{ role: 'user', content: transcriptText }], llm)
-        summaries[t.id] = result
+      for (const tpl of chosen) {
+        summaries[tpl.id] = await chatLLM(
+          tpl.prompt,
+          [{ role: 'user', content: transcriptText }],
+          llm,
+        )
       }
       await db.notes.update(note.id, { summaries })
       setPickedTemplates([])
@@ -177,7 +181,11 @@ export default function NoteDetail() {
 
   const generateMindmap = () =>
     runLLM('mappa', async (llm) => {
-      const markdown = await chatLLM(mindmapPrompt, [{ role: 'user', content: transcriptText }], llm)
+      const markdown = await chatLLM(
+        prompt(mindmapPrompt),
+        [{ role: 'user', content: transcriptText }],
+        llm,
+      )
       const cleaned = markdown.replace(/^```[a-z]*\n?|```\s*$/g, '').trim()
       await db.notes.update(note.id, {
         mindmap: { markdown: cleaned, mermaid: markdownToMermaidMindmap(cleaned) },
@@ -186,19 +194,23 @@ export default function NoteDetail() {
 
   const diarize = () =>
     runLLM('diarizzazione', async (llm) => {
-      const result = await chatLLM(diarizzazionePrompt, [{ role: 'user', content: transcriptText }], llm)
+      const result = await chatLLM(
+        prompt(diarizzazionePrompt),
+        [{ role: 'user', content: transcriptText }],
+        llm,
+      )
       const summaries = { ...(note.summaries ?? {}), diarizzazione: result }
       await db.notes.update(note.id, { summaries })
     })
 
-  const templateName = (id: string) =>
-    id === 'diarizzazione'
-      ? 'Trascrizione per interlocutore'
-      : (templates.find((t) => t.id === id)?.name ?? id)
+  const templateName = (templateId: string) =>
+    templateId === 'diarizzazione'
+      ? t('note.diarizationName')
+      : (templates.find((x) => x.id === templateId)?.name ?? templateId)
 
-  const removeSummary = async (id: string) => {
+  const removeSummary = async (templateId: string) => {
     const summaries = { ...(note.summaries ?? {}) }
-    delete summaries[id]
+    delete summaries[templateId]
     await db.notes.update(note.id, { summaries })
     await reload()
   }
@@ -215,17 +227,20 @@ export default function NoteDetail() {
             autoFocus
           />
           <button className="btn-primary btn-small" onClick={() => void saveTitle()}>
-            Salva
+            {t('common.save')}
           </button>
         </div>
       ) : (
-        <h1 onClick={() => (setTitleDraft(note.title), setEditingTitle(true))} title="Tocca per rinominare">
+        <h1
+          onClick={() => (setTitleDraft(note.title), setEditingTitle(true))}
+          title={t('note.renameHint')}
+        >
           {note.title}
         </h1>
       )}
       <p className="muted">
         {formatDate(note.createdAt)} · {formatDuration(note.durationSec)}
-        {note.status === 'recovered' && ' · recuperata dopo interruzione'}
+        {note.status === 'recovered' && ` · ${t('note.recovered')}`}
       </p>
 
       {audioError && <div className="info-box">{audioError}</div>}
@@ -233,36 +248,36 @@ export default function NoteDetail() {
 
       <div className="row" style={{ marginTop: 10 }}>
         <button className="btn-ghost btn-small" onClick={() => void exportAudio()}>
-          Esporta audio
+          {t('note.exportAudio')}
         </button>
         <button className="btn-ghost btn-small" onClick={exportMarkdown}>
-          Esporta .md
+          {t('note.exportMd')}
         </button>
         {'share' in navigator && (
           <button className="btn-ghost btn-small" onClick={() => void shareNote()}>
-            Condividi
+            {t('note.share')}
           </button>
         )}
         <span className="spacer" />
         <button className="btn-danger btn-small" onClick={() => void removeNote()}>
-          Elimina
+          {t('common.delete')}
         </button>
       </div>
 
-      <h2>Tag</h2>
+      <h2>{t('note.tags')}</h2>
       <TagEditor note={note} onChanged={() => void reload()} />
 
-      <h2>Trascrizione</h2>
+      <h2>{t('note.transcription')}</h2>
       {note.transcript ? (
         <>
           <TranscriptView transcript={note.transcript} onSeek={seekTo} />
           <button className="btn-ghost btn-small" onClick={() => void doTranscribe()} disabled={transcribing}>
-            {transcribing ? 'Trascrizione in corso…' : 'Ritrascrivi'}
+            {transcribing ? t('note.transcribing') : t('note.retranscribe')}
           </button>
         </>
       ) : (
         <button className="btn-primary" onClick={() => void doTranscribe()} disabled={transcribing}>
-          {transcribing ? 'Trascrizione in corso…' : 'Trascrivi'}
+          {transcribing ? t('note.transcribing') : t('note.transcribe')}
         </button>
       )}
       {transcribing && progress && (
@@ -275,31 +290,31 @@ export default function NoteDetail() {
 
       {note.transcript && (
         <>
-          <h2>Riepiloghi AI</h2>
-          {Object.entries(note.summaries ?? {}).map(([id, text]) => (
-            <div key={id} className="card">
+          <h2>{t('note.summaries')}</h2>
+          {Object.entries(note.summaries ?? {}).map(([templateId, text]) => (
+            <div key={templateId} className="card">
               <div className="row">
-                <strong>{templateName(id)}</strong>
+                <strong>{templateName(templateId)}</strong>
                 <span className="spacer" />
-                <button className="btn-ghost btn-small" onClick={() => void removeSummary(id)}>
-                  Rimuovi
+                <button className="btn-ghost btn-small" onClick={() => void removeSummary(templateId)}>
+                  {t('common.remove')}
                 </button>
               </div>
               <Markdown text={text} />
             </div>
           ))}
           <div className="row" style={{ marginBottom: 8 }}>
-            {templates.map((t) => (
+            {templates.map((tpl) => (
               <button
-                key={t.id}
-                className={`btn-small ${pickedTemplates.includes(t.id) ? 'btn-primary' : 'btn-ghost'}`}
+                key={tpl.id}
+                className={`btn-small ${pickedTemplates.includes(tpl.id) ? 'btn-primary' : 'btn-ghost'}`}
                 onClick={() =>
                   setPickedTemplates((cur) =>
-                    cur.includes(t.id) ? cur.filter((x) => x !== t.id) : [...cur, t.id],
+                    cur.includes(tpl.id) ? cur.filter((x) => x !== tpl.id) : [...cur, tpl.id],
                   )
                 }
               >
-                {t.name}
+                {tpl.name}
               </button>
             ))}
           </div>
@@ -309,14 +324,14 @@ export default function NoteDetail() {
               onClick={() => void generateSummaries()}
               disabled={aiBusy !== '' || pickedTemplates.length === 0}
             >
-              {aiBusy === 'riepiloghi' ? 'Generazione…' : 'Genera riepilogo'}
+              {aiBusy === 'riepiloghi' ? t('note.generating') : t('note.generateSummary')}
             </button>
             <button className="btn-ghost btn-small" onClick={() => void diarize()} disabled={aiBusy !== ''}>
-              {aiBusy === 'diarizzazione' ? 'Analisi…' : 'Chi parla? (per interlocutore)'}
+              {aiBusy === 'diarizzazione' ? t('note.analyzing') : t('note.diarize')}
             </button>
           </div>
 
-          <h2>Mappa mentale</h2>
+          <h2>{t('note.mindmap')}</h2>
           {note.mindmap ? (
             <>
               <MindMapView markdown={note.mindmap.markdown} mermaid={note.mindmap.mermaid} />
@@ -326,12 +341,12 @@ export default function NoteDetail() {
                 onClick={() => void generateMindmap()}
                 disabled={aiBusy !== ''}
               >
-                {aiBusy === 'mappa' ? 'Generazione…' : 'Rigenera mappa'}
+                {aiBusy === 'mappa' ? t('note.generating') : t('note.regenerateMindmap')}
               </button>
             </>
           ) : (
             <button className="btn-primary btn-small" onClick={() => void generateMindmap()} disabled={aiBusy !== ''}>
-              {aiBusy === 'mappa' ? 'Generazione…' : 'Genera mappa mentale'}
+              {aiBusy === 'mappa' ? t('note.generating') : t('note.generateMindmap')}
             </button>
           )}
           {aiError && <div className="error-box">{aiError}</div>}

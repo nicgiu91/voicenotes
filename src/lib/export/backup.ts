@@ -1,5 +1,6 @@
 import { db } from '../db'
 import type { AudioChunk, ChatThread, Note, Template } from '../types'
+import { t } from '../i18n'
 
 interface BackupChunk {
   noteId: string
@@ -22,7 +23,7 @@ function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const r = new FileReader()
     r.onload = () => resolve((r.result as string).split(',')[1] ?? '')
-    r.onerror = () => reject(new Error('Lettura audio fallita'))
+    r.onerror = () => reject(new Error(t('err.noAudio')))
     r.readAsDataURL(blob)
   })
 }
@@ -76,10 +77,10 @@ export async function importBackup(file: Blob): Promise<{ note: number }> {
   try {
     data = JSON.parse(text) as BackupFile
   } catch {
-    throw new Error('Il file non è un backup valido (JSON illeggibile).')
+    throw new Error(t('err.backupJson'))
   }
   if (data.formato !== 'voicenotes-backup' || !Array.isArray(data.notes)) {
-    throw new Error('Il file non è un backup di VoiceNotes.')
+    throw new Error(t('err.backupFormat'))
   }
 
   await db.transaction('rw', [db.notes, db.chunks, db.templates, db.chats], async () => {

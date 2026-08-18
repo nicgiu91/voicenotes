@@ -1,6 +1,7 @@
 import type { Note } from '../types'
 import { formatDuration, formatTimestamp } from '../format'
 import { groupSegments } from '../transcribe/merge'
+import { t } from '../i18n'
 
 /**
  * Converte una nota in Markdown compatibile con Obsidian:
@@ -14,14 +15,14 @@ export function noteToMarkdown(note: Note, templateNames: Record<string, string>
   ).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 
   const lines: string[] = ['---']
-  lines.push(`titolo: "${note.title.replace(/"/g, '\\"')}"`)
-  lines.push(`data: ${iso}`)
-  lines.push(`durata: ${formatDuration(note.durationSec)}`)
+  lines.push(`${t('export.fmTitle')}: "${note.title.replace(/"/g, '\\"')}"`)
+  lines.push(`${t('export.fmDate')}: ${iso}`)
+  lines.push(`${t('export.fmDuration')}: ${formatDuration(note.durationSec)}`)
   if (note.tags.length > 0) {
-    lines.push('tags:')
-    for (const t of note.tags) lines.push(`  - ${t}`)
+    lines.push(`${t('export.fmTags')}:`)
+    for (const tag of note.tags) lines.push(`  - ${tag}`)
   }
-  lines.push('origine: VoiceNotes')
+  lines.push(`${t('export.fmSource')}: VoiceNotes`)
   lines.push('---')
   lines.push('')
   lines.push(`# ${note.title}`)
@@ -29,9 +30,8 @@ export function noteToMarkdown(note: Note, templateNames: Record<string, string>
 
   if (note.summaries && Object.keys(note.summaries).length > 0) {
     for (const [id, text] of Object.entries(note.summaries)) {
-      const name =
-        id === 'diarizzazione' ? 'Trascrizione per interlocutore' : (templateNames[id] ?? id)
-      lines.push(`## Riepilogo — ${name}`)
+      const name = id === 'diarizzazione' ? t('note.diarizationName') : (templateNames[id] ?? id)
+      lines.push(`## ${t('export.summary')} — ${name}`)
       lines.push('')
       lines.push(text.trim())
       lines.push('')
@@ -39,7 +39,7 @@ export function noteToMarkdown(note: Note, templateNames: Record<string, string>
   }
 
   if (note.mindmap) {
-    lines.push('## Mappa mentale')
+    lines.push(`## ${t('export.mindmap')}`)
     lines.push('')
     lines.push('```mermaid')
     lines.push(note.mindmap.mermaid.trim())
@@ -48,7 +48,7 @@ export function noteToMarkdown(note: Note, templateNames: Record<string, string>
   }
 
   if (note.transcript && note.transcript.segments.length > 0) {
-    lines.push('## Trascrizione')
+    lines.push(`## ${t('export.transcript')}`)
     lines.push('')
     for (const group of groupSegments(note.transcript.segments)) {
       lines.push(`${formatTimestamp(group[0].start)} ${group.map((s) => s.text).join(' ')}`)

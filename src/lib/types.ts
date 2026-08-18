@@ -61,6 +61,8 @@ export interface LlmSettings {
 
 export interface SettingsData {
   privacyAccepted: boolean
+  /** lingua dell'interfaccia */
+  lang: 'it' | 'en'
   transcribe: TranscribeSettings
   llm: LlmSettings
 }

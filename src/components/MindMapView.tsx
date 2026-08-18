@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Transformer } from 'markmap-lib'
 import { Markmap } from 'markmap-view'
+import { useT } from '../lib/i18n'
 
 const transformer = new Transformer()
 
 /** Mappa mentale interattiva (zoom e trascinamento) renderizzata con Markmap. */
 export default function MindMapView({ markdown, mermaid }: { markdown: string; mermaid: string }) {
+  const { t } = useT()
   const svgRef = useRef<SVGSVGElement>(null)
   const mmRef = useRef<Markmap | null>(null)
   const [copied, setCopied] = useState('')
@@ -39,13 +41,17 @@ export default function MindMapView({ markdown, mermaid }: { markdown: string; m
     <div>
       <svg ref={svgRef} className="mindmap-svg" />
       <div className="row" style={{ marginTop: 8 }}>
-        <button className="btn-ghost btn-small" onClick={() => void copy('markdown', markdown)}>
-          Copia Markdown
+        <button className="btn-ghost btn-small" onClick={() => void copy('Markdown', markdown)}>
+          {t('mindmap.copyMarkdown')}
         </button>
-        <button className="btn-ghost btn-small" onClick={() => void copy('mermaid', mermaid)}>
-          Copia Mermaid
+        <button className="btn-ghost btn-small" onClick={() => void copy('Mermaid', mermaid)}>
+          {t('mindmap.copyMermaid')}
         </button>
-        {copied && <span style={{ color: 'var(--ok)', fontSize: '0.85rem' }}>Copiato ({copied}) ✓</span>}
+        {copied && (
+          <span style={{ color: 'var(--ok)', fontSize: '0.85rem' }}>
+            {t('common.copied')} ({copied}) ✓
+          </span>
+        )}
       </div>
     </div>
   )

@@ -1,10 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { buildContext } from '../src/lib/llm/context'
+import { setLang } from '../src/lib/i18n'
 
 describe('buildContext', () => {
   it('include per intero le note corte', () => {
     const ctx = buildContext([{ title: 'Breve', text: 'poco testo' }])
     expect(ctx).toBe('## Nota: Breve\npoco testo')
+  })
+
+  it('usa le intestazioni della lingua attiva', () => {
+    setLang('en')
+    expect(buildContext([{ title: 'Short', text: 'a bit of text' }])).toBe(
+      '## Note: Short\na bit of text',
+    )
+    setLang('it')
   })
 
   it('tronca le note lunghe tenendo inizio e fine', () => {

@@ -1,4 +1,5 @@
 import { db } from '../db'
+import { t } from '../i18n'
 
 /**
  * Ricompone l'audio completo di una nota concatenando i chunk in ordine.
@@ -7,9 +8,9 @@ import { db } from '../db'
  */
 export async function assembleAudio(noteId: string): Promise<Blob> {
   const note = await db.notes.get(noteId)
-  if (!note) throw new Error('Nota non trovata')
+  if (!note) throw new Error(t('err.noteNotFound'))
   const chunks = await db.chunks.where('noteId').equals(noteId).sortBy('index')
-  if (chunks.length === 0) throw new Error('Nessun audio salvato per questa nota')
+  if (chunks.length === 0) throw new Error(t('err.noAudio'))
   return new Blob(
     chunks.map((c) => c.blob),
     { type: note.mimeType },

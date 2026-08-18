@@ -3,6 +3,7 @@ import { splitForTranscription } from '../audio/wav'
 import { db } from '../db'
 import { mergeParts, type TranscriptPart } from './merge'
 import type { TranscribeSettings, Transcript } from '../types'
+import { t } from '../i18n'
 
 interface VerboseJsonResponse {
   text?: string
@@ -25,7 +26,7 @@ export async function transcribeBlob(
   settings: TranscribeSettings,
   fallbackDurationSec: number,
 ): Promise<TranscriptPart & { language?: string }> {
-  if (!settings.baseUrl) throw new Error('Configura l\'endpoint di trascrizione nelle Impostazioni.')
+  if (!settings.baseUrl) throw new Error(t('err.transcribeConfigure'))
 
   const attempt = async (format: 'verbose_json' | 'json') => {
     const form = new FormData()
@@ -38,9 +39,10 @@ export async function transcribeBlob(
     const res = await fetch(apiUrl(settings.baseUrl), { method: 'POST', headers, body: form })
     if (!res.ok) {
       const body = await res.text().catch(() => '')
-      throw Object.assign(new Error(`Trascrizione fallita (HTTP ${res.status}): ${body.slice(0, 300)}`), {
-        status: res.status,
-      })
+      throw Object.assign(
+        new Error(t('err.transcribeFailed', { status: res.status, body: body.slice(0, 300) })),
+        { status: res.status },
+      )
     }
     return (await res.json()) as VerboseJsonResponse
   }
@@ -78,9 +80,9 @@ export async function transcribeNote(
   onProgress: TranscribeProgress = () => {},
 ): Promise<Transcript> {
   const note = await db.notes.get(noteId)
-  if (!note) throw new Error('Nota non trovata')
+  if (!note) throw new Error(t('err.noteNotFound'))
 
-  onProgress('Preparazione audio…')
+  onProgress(t('transcribe.preparing'))
   const audio = await assembleAudio(noteId)
 
   let merged: TranscriptPart
@@ -96,7 +98,9 @@ export async function transcribeNote(
     const parts: TranscriptPart[] = []
     for (let i = 0; i < pieces.length; i++) {
       onProgress(
-        pieces.length > 1 ? `Trascrizione parte ${i + 1} di ${pieces.length}…` : 'Trascrizione in corso…',
+        pieces.length > 1
+          ? t('transcribe.part', { n: i + 1, total: pieces.length })
+          : t('transcribe.inProgress'),
       )
       const part = await transcribeBlob(pieces[i].blob, settings, note.durationSec)
       language ??= part.language

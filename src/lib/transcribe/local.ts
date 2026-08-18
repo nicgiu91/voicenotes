@@ -2,12 +2,13 @@ import { decodeTo16kMono } from '../audio/wav'
 import type { LocalWhisperSize, TranscribeSettings } from '../types'
 import type { TranscriptPart } from './merge'
 import type { TranscribeProgress } from './client'
+import { t } from '../i18n'
 
 /** Modelli Whisper multilingua per la trascrizione nel browser. */
-export const LOCAL_MODELS: Record<LocalWhisperSize, { id: string; label: string }> = {
-  tiny: { id: 'onnx-community/whisper-tiny', label: 'Veloce (~40 MB, meno preciso)' },
-  base: { id: 'onnx-community/whisper-base', label: 'Equilibrato (~80 MB)' },
-  small: { id: 'onnx-community/whisper-small', label: 'Preciso (~250 MB, lento sul telefono)' },
+export const LOCAL_MODELS: Record<LocalWhisperSize, { id: string; labelKey: 'whisper.tiny' | 'whisper.base' | 'whisper.small' }> = {
+  tiny: { id: 'onnx-community/whisper-tiny', labelKey: 'whisper.tiny' },
+  base: { id: 'onnx-community/whisper-base', labelKey: 'whisper.base' },
+  small: { id: 'onnx-community/whisper-small', labelKey: 'whisper.small' },
 }
 
 // worker unico e persistente: il modello resta caricato in memoria
@@ -22,6 +23,9 @@ function getWorker(): Worker {
 
 interface WorkerReply {
   type: 'progress' | 'done' | 'error'
+  /** per i messaggi di avanzamento: fase in corso (il testo è tradotto qui, non nel worker) */
+  stage?: 'download' | 'transcribe'
+  pct?: number
   message?: string
   text?: string
   chunks?: { start: number; end: number | null; text: string }[]
@@ -38,7 +42,7 @@ export async function transcribeLocally(
   durationSec: number,
   onProgress: TranscribeProgress,
 ): Promise<TranscriptPart & { language?: string }> {
-  onProgress('Preparazione audio…')
+  onProgress(t('transcribe.preparing'))
   const audio = await decodeTo16kMono(blob)
   const model = LOCAL_MODELS[settings.localModel]?.id ?? LOCAL_MODELS.tiny.id
   const w = getWorker()
@@ -50,8 +54,13 @@ export async function transcribeLocally(
     }
     w.onmessage = (e: MessageEvent<WorkerReply>) => {
       const msg = e.data
-      if (msg.type === 'progress' && msg.message) {
-        onProgress(msg.message)
+      if (msg.type === 'progress') {
+        // il worker manda solo il tipo di avanzamento: il testo lo traduciamo qui
+        onProgress(
+          msg.stage === 'download'
+            ? t('transcribe.localDownload', { pct: msg.pct ?? 0 })
+            : t('transcribe.localRunning'),
+        )
       } else if (msg.type === 'done') {
         cleanup()
         const segments = (msg.chunks ?? [])
@@ -64,12 +73,12 @@ export async function transcribeLocally(
         })
       } else if (msg.type === 'error') {
         cleanup()
-        reject(new Error(`Trascrizione locale fallita: ${msg.message ?? 'errore sconosciuto'}`))
+        reject(new Error(t('err.localFailed', { message: msg.message ?? '?' })))
       }
     }
     w.onerror = (e) => {
       cleanup()
-      reject(new Error(`Errore del worker di trascrizione: ${e.message}`))
+      reject(new Error(t('err.workerFailed', { message: e.message })))
     }
     // il buffer audio viene trasferito (non copiato) al worker
     w.postMessage({ audio, language: settings.language || undefined, model }, [audio.buffer])

@@ -5,12 +5,14 @@ import type { ChatThread, Note } from '../lib/types'
 import { chatLLM, llmConfigured, type LlmMessage } from '../lib/llm/client'
 import { askSystemPrompt, buildContext } from '../lib/llm/context'
 import Markdown from '../components/Markdown'
+import { getLang, useT } from '../lib/i18n'
 
 function threadKey(noteIds: string[]): string {
   return [...noteIds].sort().join('|')
 }
 
 export default function Ask() {
+  const { t } = useT()
   const [notes, setNotes] = useState<Note[]>([])
   const [selected, setSelected] = useState<string[]>([])
   const [thread, setThread] = useState<ChatThread | null>(null)
@@ -73,12 +75,12 @@ export default function Ask() {
     try {
       const settings = await getSettings()
       if (!llmConfigured(settings.llm)) {
-        throw new Error('Configura prima il provider AI nelle Impostazioni.')
+        throw new Error(t('err.llmConfigure'))
       }
       const context = buildContext(
         selectedNotes.map((n) => ({ title: n.title, text: n.transcript?.text ?? '' })),
       )
-      const system = `${askSystemPrompt}\n\n${context}`
+      const system = `${askSystemPrompt[getLang()]}\n\n${context}`
       // manda solo gli ultimi scambi per non gonfiare il contesto
       const history: LlmMessage[] = withQuestion.messages
         .slice(-12)
@@ -92,7 +94,7 @@ export default function Ask() {
       setThread(done)
       await db.chats.put(done)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Errore nella richiesta')
+      setError(e instanceof Error ? e.message : t('err.askGeneric'))
     } finally {
       setBusy(false)
     }
@@ -100,7 +102,7 @@ export default function Ask() {
 
   const clearChat = async () => {
     if (!thread) return
-    if (!confirm('Cancellare questa conversazione?')) return
+    if (!confirm(t('ask.clearConfirm'))) return
     await db.chats.delete(thread.id)
     setThread(null)
   }
@@ -108,12 +110,10 @@ export default function Ask() {
   if (notes.length === 0) {
     return (
       <div>
-        <h1>Ask</h1>
-        <p className="muted">
-          Qui potrai fare domande sulle tue note, ma prima serve almeno una nota trascritta.
-        </p>
+        <h1>{t('ask.title')}</h1>
+        <p className="muted">{t('ask.needTranscribed')}</p>
         <Link to="/">
-          <button className="btn-ghost">Vai alle note</button>
+          <button className="btn-ghost">{t('ask.goToNotes')}</button>
         </Link>
       </div>
     )
@@ -121,8 +121,8 @@ export default function Ask() {
 
   return (
     <div>
-      <h1>Ask</h1>
-      <p className="muted">Scegli le note su cui vuoi fare domande:</p>
+      <h1>{t('ask.title')}</h1>
+      <p className="muted">{t('ask.chooseNotes')}</p>
       <div className="row" style={{ marginBottom: 14 }}>
         {notes.map((n) => (
           <button
@@ -146,7 +146,7 @@ export default function Ask() {
             {busy && (
               <div className="chat-msg assistant">
                 <span className="spin" />
-                Sto pensando…
+                {t('ask.thinking')}
               </div>
             )}
             <div ref={bottomRef} />
@@ -155,7 +155,7 @@ export default function Ask() {
           <div className="row">
             <input
               type="text"
-              placeholder="Fai una domanda sulle note selezionate…"
+              placeholder={t('ask.placeholder')}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -165,12 +165,12 @@ export default function Ask() {
               disabled={busy}
             />
             <button className="btn-primary" onClick={() => void send()} disabled={busy || !input.trim()}>
-              Invia
+              {t('ask.send')}
             </button>
           </div>
           {thread && thread.messages.length > 0 && (
             <button className="btn-ghost btn-small" style={{ marginTop: 10 }} onClick={() => void clearChat()}>
-              Cancella conversazione
+              {t('ask.clear')}
             </button>
           )}
         </>

@@ -1,3 +1,5 @@
+import { locale, t } from './i18n'
+
 /** 65 -> "1:05", 3671 -> "1:01:11" */
 export function formatDuration(totalSec: number): string {
   const sec = Math.max(0, Math.round(totalSec))
@@ -20,7 +22,7 @@ export function formatTimestamp(sec: number): string {
 }
 
 export function formatDate(ms: number): string {
-  return new Date(ms).toLocaleString('it-IT', {
+  return new Date(ms).toLocaleString(locale(), {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -43,5 +45,13 @@ export function slugify(text: string): string {
 }
 
 export function defaultNoteTitle(createdAt: number): string {
-  return `Registrazione ${formatDate(createdAt)}`
+  return t('note.defaultTitle', { date: formatDate(createdAt) })
+}
+
+/**
+ * Vero se il titolo è ancora quello generato automaticamente alla registrazione
+ * (in una qualsiasi delle lingue supportate): solo allora l'AI lo sostituisce.
+ */
+export function isDefaultNoteTitle(title: string): boolean {
+  return /^(Registrazione|Recording) /.test(title)
 }
