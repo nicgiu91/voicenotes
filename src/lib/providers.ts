@@ -41,6 +41,8 @@ export interface ProviderInfo<Id extends string> {
   models: ModelOption[]
   /** modello proposto scegliendo il provider (default: il primo dell'elenco) */
   defaultModel?: string
+  /** indirizzo per l'elenco dei modelli, se il servizio non lo espone come gli altri */
+  modelsUrl?: string
 }
 
 export type LlmProviderInfo = ProviderInfo<LlmProvider>
@@ -90,6 +92,8 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
     keyUrl: 'https://aistudio.google.com/apikey',
     keyRequired: true,
+    // Gemini elenca i modelli fuori dal protocollo OpenAI-compatible
+    modelsUrl: 'https://generativelanguage.googleapis.com/v1beta/models',
     models: [
       { id: 'gemini-2.5-flash', labelKey: 'models.gemini25Flash' },
       { id: 'gemini-2.5-pro', labelKey: 'models.gemini25Pro' },
@@ -206,14 +210,19 @@ export function isCustomModel(models: ModelOption[], model: string): boolean {
  * uso: così l'app resta aggiornata anche quando un provider ne pubblica di nuovi.
  */
 export async function fetchModels(
-  api: ApiKind,
+  info: ProviderInfo<string>,
   baseUrl: string,
   apiKey: string,
 ): Promise<ModelOption[]> {
   const base = baseUrl.replace(/\/+$/, '')
-  const url = api === 'anthropic' ? `${base}/v1/models?limit=100` : `${base}/models`
-  const headers: Record<string, string> =
-    api === 'anthropic'
+  const url = info.modelsUrl
+    ? info.modelsUrl
+    : info.api === 'anthropic'
+      ? `${base}/v1/models?limit=100`
+      : `${base}/models`
+  const headers: Record<string, string> = info.modelsUrl
+    ? { 'x-goog-api-key': apiKey }
+    : info.api === 'anthropic'
       ? {
           'x-api-key': apiKey,
           'anthropic-version': '2023-06-01',
@@ -233,10 +242,16 @@ export async function fetchModels(
     const body = await res.text().catch(() => '')
     throw new Error(t('err.modelsFetch', { status: res.status, body: body.slice(0, 200) }))
   }
-  const data = (await res.json()) as { data?: { id?: string; display_name?: string }[] }
-  const models = (data.data ?? [])
-    .filter((m): m is { id: string; display_name?: string } => typeof m.id === 'string')
-    .map((m) => ({ id: m.id, label: m.display_name ?? m.id }))
+  const data = (await res.json()) as {
+    data?: { id?: string; display_name?: string }[]
+    models?: { name?: string; displayName?: string }[]
+  }
+  const raw = data.models
+    ? data.models.map((m) => ({ id: (m.name ?? '').replace(/^models\//, ''), label: m.displayName }))
+    : (data.data ?? []).map((m) => ({ id: m.id ?? '', label: m.display_name }))
+  const models = raw
+    .filter((m) => m.id !== '')
+    .map((m) => ({ id: m.id, label: m.label ?? m.id }))
   if (models.length === 0) throw new Error(t('err.modelsEmpty'))
   return models.sort((a, b) => a.id.localeCompare(b.id))
 }

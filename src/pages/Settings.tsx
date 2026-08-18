@@ -66,7 +66,7 @@ export default function Settings() {
     const setMsg = kind === 'llm' ? setLlmModelsMsg : setTrModelsMsg
     setLoadingModels(kind)
     setMsg('')
-    void fetchModels(cfg.info.api, cfg.baseUrl, cfg.apiKey)
+    void fetchModels(cfg.info, cfg.baseUrl, cfg.apiKey)
       .then((list) => {
         if (kind === 'llm') setLlmModels(list)
         else setTrModels(list)

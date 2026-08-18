@@ -104,7 +104,7 @@ describe('fetchModels', () => {
   test('legge gli id dai servizi OpenAI-compatible e li ordina', async () => {
     const fetchMock = stub(true, { data: [{ id: 'gpt-4o' }, { id: 'gpt-4.1' }] })
     vi.stubGlobal('fetch', fetchMock)
-    const models = await fetchModels('openai', 'https://api.openai.com/v1/', 'sk-test')
+    const models = await fetchModels(llmProvider('openai'), 'https://api.openai.com/v1/', 'sk-test')
     expect(models.map((m) => m.id)).toEqual(['gpt-4.1', 'gpt-4o'])
     const [url, init] = fetchMock.mock.calls[0]
     expect(url).toBe('https://api.openai.com/v1/models')
@@ -114,21 +114,33 @@ describe('fetchModels', () => {
   test('per Anthropic usa /v1/models e l’header x-api-key', async () => {
     const fetchMock = stub(true, { data: [{ id: 'claude-sonnet-5', display_name: 'Claude Sonnet 5' }] })
     vi.stubGlobal('fetch', fetchMock)
-    const models = await fetchModels('anthropic', 'https://api.anthropic.com', 'sk-ant')
+    const models = await fetchModels(llmProvider('anthropic'), 'https://api.anthropic.com', 'sk-ant')
     expect(models[0].label).toBe('Claude Sonnet 5')
     const [url, init] = fetchMock.mock.calls[0]
     expect(url).toContain('https://api.anthropic.com/v1/models')
     expect(init.headers['x-api-key']).toBe('sk-ant')
   })
 
+  test('per Gemini usa l’indirizzo di Google e la sua risposta', async () => {
+    const fetchMock = stub(true, {
+      models: [{ name: 'models/gemini-2.5-flash', displayName: 'Gemini 2.5 Flash' }],
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const models = await fetchModels(llmProvider('google'), 'https://esempio.invalido', 'chiave')
+    expect(models).toEqual([{ id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' }])
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe('https://generativelanguage.googleapis.com/v1beta/models')
+    expect(init.headers['x-goog-api-key']).toBe('chiave')
+  })
+
   test('segnala l’errore quando il servizio rifiuta la chiave', async () => {
     vi.stubGlobal('fetch', stub(false, { error: 'invalid key' }))
-    await expect(fetchModels('openai', 'https://api.openai.com/v1', 'sbagliata')).rejects.toThrow('401')
+    await expect(fetchModels(llmProvider('openai'), 'https://api.openai.com/v1', 'sbagliata')).rejects.toThrow('401')
   })
 
   test('segnala quando non arriva nessun modello', async () => {
     vi.stubGlobal('fetch', stub(true, { data: [] }))
-    await expect(fetchModels('openai', 'https://api.openai.com/v1', 'k')).rejects.toThrow()
+    await expect(fetchModels(llmProvider('openai'), 'https://api.openai.com/v1', 'k')).rejects.toThrow()
   })
 })
 
