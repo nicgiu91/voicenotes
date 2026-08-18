@@ -5,6 +5,13 @@ Registratore AI per smartphone, in stile Plaud ma senza hardware dedicato: una w
 e risponde a domande sulle tue note. Tutto resta sul dispositivo: nessun server proprietario,
 le API di trascrizione e AI le scegli tu nelle Impostazioni.
 
+## App online (installabile su telefono)
+
+**<https://nicgiu91.github.io/voicenotes/>**
+
+Pubblicata automaticamente su GitHub Pages a ogni push su `master`. Su iPhone aprila con
+Safari → Condividi → "Aggiungi a Home"; su Android con Chrome → menu ⋮ → "Installa app".
+
 ## Avvio rapido (sul PC)
 
 Doppio clic su **`avvia-voicenotes.bat`**, poi:
