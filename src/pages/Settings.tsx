@@ -1,10 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getSettings, saveLanguage, saveSettings } from '../lib/db'
-import type { LocalWhisperSize, SettingsData } from '../lib/types'
+import type { LlmProvider, LocalWhisperSize, SettingsData, TranscribeProvider } from '../lib/types'
 import { exportBackup, importBackup } from '../lib/export/backup'
 import { LOCAL_MODELS } from '../lib/transcribe/local'
-import { isCustomModel, modelsFor } from '../lib/llm/models'
+import {
+  LLM_PROVIDERS,
+  TRANSCRIBE_PROVIDERS,
+  defaultModelFor,
+  fetchModels,
+  isCustomModel,
+  llmProvider,
+  modelLabel,
+  nextBaseUrl,
+  transcribeProvider,
+  type ModelOption,
+  type ProviderInfo,
+} from '../lib/providers'
 import { useT, type Lang } from '../lib/i18n'
 
 export default function Settings() {
@@ -14,6 +26,12 @@ export default function Settings() {
   const [backupMsg, setBackupMsg] = useState('')
   const [backupBusy, setBackupBusy] = useState(false)
   const importRef = useRef<HTMLInputElement>(null)
+  // modelli letti dal servizio con "Aggiorna elenco": sostituiscono quelli proposti
+  const [llmModels, setLlmModels] = useState<ModelOption[] | null>(null)
+  const [trModels, setTrModels] = useState<ModelOption[] | null>(null)
+  const [llmModelsMsg, setLlmModelsMsg] = useState('')
+  const [trModelsMsg, setTrModelsMsg] = useState('')
+  const [loadingModels, setLoadingModels] = useState<'llm' | 'transcribe' | null>(null)
 
   useEffect(() => {
     void getSettings().then(setS)
@@ -35,8 +53,35 @@ export default function Settings() {
     location.protocol === 'https:' &&
     (s.transcribe.baseUrl.startsWith('http://') || s.llm.baseUrl.startsWith('http://'))
 
-  const models = modelsFor(s.llm.provider)
-  const customModel = isCustomModel(s.llm.provider, s.llm.model)
+  const llmInfo = llmProvider(s.llm.provider)
+  const models = llmModels ?? llmInfo.models
+  const customModel = isCustomModel(models, s.llm.model)
+
+  const trInfo = transcribeProvider(s.transcribe.provider)
+  const trModelList = trModels ?? trInfo.models
+  const trCustomModel = isCustomModel(trModelList, s.transcribe.model)
+
+  const loadModels = (kind: 'llm' | 'transcribe') => {
+    const cfg = kind === 'llm' ? { info: llmInfo, ...s.llm } : { info: trInfo, ...s.transcribe }
+    const setMsg = kind === 'llm' ? setLlmModelsMsg : setTrModelsMsg
+    setLoadingModels(kind)
+    setMsg('')
+    void fetchModels(cfg.info.api, cfg.baseUrl, cfg.apiKey)
+      .then((list) => {
+        if (kind === 'llm') setLlmModels(list)
+        else setTrModels(list)
+        setMsg(t('settings.modelsLoaded', { n: list.length }))
+      })
+      .catch((err: unknown) => setMsg(err instanceof Error ? err.message : t('err.modelsEmpty')))
+      .finally(() => setLoadingModels(null))
+  }
+
+  const keyLink = (info: ProviderInfo<string>) =>
+    info.keyUrl ? (
+      <a className="muted key-link" href={info.keyUrl} target="_blank" rel="noreferrer">
+        {t('settings.getKey')}
+      </a>
+    ) : null
 
   return (
     <div>
@@ -94,7 +139,32 @@ export default function Settings() {
         </>
       ) : (
         <>
-          <p className="muted">{t('settings.apiInfo')}</p>
+          <label className="field">
+            <span>{t('settings.transcribeService')}</span>
+            <select
+              value={s.transcribe.provider}
+              onChange={(e) => {
+                const provider = e.target.value as TranscribeProvider
+                const info = transcribeProvider(provider)
+                setTrModels(null)
+                setTrModelsMsg('')
+                update({
+                  transcribe: {
+                    ...s.transcribe,
+                    provider,
+                    baseUrl: nextBaseUrl(info, s.transcribe.baseUrl, TRANSCRIBE_PROVIDERS),
+                    model: defaultModelFor(info),
+                  },
+                })
+              }}
+            >
+              {TRANSCRIBE_PROVIDERS.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {t(p.labelKey)}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="field">
             <span>{t('settings.baseUrl')}</span>
             <input
@@ -104,7 +174,7 @@ export default function Settings() {
             />
           </label>
           <label className="field">
-            <span>{t('settings.apiKeyOptional')}</span>
+            <span>{trInfo.keyRequired ? t('settings.apiKey') : t('settings.apiKeyOptional')}</span>
             <input
               type="password"
               value={s.transcribe.apiKey}
@@ -112,34 +182,62 @@ export default function Settings() {
               onChange={(e) => update({ transcribe: { ...s.transcribe, apiKey: e.target.value.trim() } })}
             />
           </label>
+          {keyLink(trInfo)}
+          <label className="field">
+            <span>{t('settings.transcribeModel')}</span>
+            <select
+              value={trCustomModel ? '__custom__' : s.transcribe.model}
+              onChange={(e) => {
+                const value = e.target.value
+                update({
+                  transcribe: { ...s.transcribe, model: value === '__custom__' ? '' : value },
+                })
+              }}
+            >
+              {trModelList.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {modelLabel(m)}
+                </option>
+              ))}
+              <option value="__custom__">{t('settings.customModel')}</option>
+            </select>
+          </label>
+          {trCustomModel && (
+            <label className="field">
+              <span>{t('settings.customModelField')}</span>
+              <input
+                type="text"
+                value={s.transcribe.model}
+                onChange={(e) => update({ transcribe: { ...s.transcribe, model: e.target.value.trim() } })}
+              />
+            </label>
+          )}
+          <div className="row">
+            <button
+              className="btn-ghost"
+              disabled={loadingModels !== null}
+              onClick={() => loadModels('transcribe')}
+            >
+              {loadingModels === 'transcribe' ? t('settings.loadingModels') : t('settings.loadModels')}
+            </button>
+            {trModelsMsg && <span className="muted">{trModelsMsg}</span>}
+          </div>
         </>
       )}
-      <div className="row">
-        {s.transcribe.mode === 'api' && (
-          <label className="field" style={{ flex: 1 }}>
-            <span>{t('settings.transcribeModel')}</span>
-            <input
-              type="text"
-              value={s.transcribe.model}
-              onChange={(e) => update({ transcribe: { ...s.transcribe, model: e.target.value.trim() } })}
-            />
-          </label>
-        )}
-        <label className="field" style={{ width: 180 }}>
-          <span>{t('settings.transcribeLang')}</span>
-          <select
-            value={s.transcribe.language}
-            onChange={(e) => update({ transcribe: { ...s.transcribe, language: e.target.value } })}
-          >
-            <option value="it">{t('settings.langIt')}</option>
-            <option value="en">{t('settings.langEn')}</option>
-            <option value="">{t('settings.langAuto')}</option>
-            <option value="fr">{t('settings.langFr')}</option>
-            <option value="de">{t('settings.langDe')}</option>
-            <option value="es">{t('settings.langEs')}</option>
-          </select>
-        </label>
-      </div>
+      <label className="field" style={{ width: 180 }}>
+        <span>{t('settings.transcribeLang')}</span>
+        <select
+          value={s.transcribe.language}
+          onChange={(e) => update({ transcribe: { ...s.transcribe, language: e.target.value } })}
+        >
+          <option value="it">{t('settings.langIt')}</option>
+          <option value="en">{t('settings.langEn')}</option>
+          <option value="">{t('settings.langAuto')}</option>
+          <option value="fr">{t('settings.langFr')}</option>
+          <option value="de">{t('settings.langDe')}</option>
+          <option value="es">{t('settings.langEs')}</option>
+        </select>
+      </label>
 
       <h2>{t('settings.ai')}</h2>
       <label className="field">
@@ -147,34 +245,30 @@ export default function Settings() {
         <select
           value={s.llm.provider}
           onChange={(e) => {
-            const provider = e.target.value as SettingsData['llm']['provider']
-            const nextModels = modelsFor(provider)
+            const provider = e.target.value as LlmProvider
+            const info = llmProvider(provider)
+            setLlmModels(null)
+            setLlmModelsMsg('')
             update({
               llm: {
                 ...s.llm,
                 provider,
-                // il modello di un provider non ha senso sull'altro: si riparte dal consigliato
-                model: provider === 'anthropic' ? 'claude-sonnet-5' : nextModels[0].id,
-                baseUrl:
-                  provider === 'anthropic'
-                    ? 'https://api.anthropic.com'
-                    : s.llm.baseUrl === 'https://api.anthropic.com'
-                      ? 'http://localhost:11434/v1'
-                      : s.llm.baseUrl,
+                // il modello di un provider non esiste sull'altro: si riparte dal consigliato
+                model: defaultModelFor(info),
+                baseUrl: nextBaseUrl(info, s.llm.baseUrl, LLM_PROVIDERS),
               },
             })
           }}
         >
-          <option value="anthropic">{t('settings.providerAnthropic')}</option>
-          <option value="openai">{t('settings.providerOpenai')}</option>
+          {LLM_PROVIDERS.map((p) => (
+            <option key={p.id} value={p.id}>
+              {t(p.labelKey)}
+            </option>
+          ))}
         </select>
       </label>
       <label className="field">
-        <span>
-          {s.llm.provider === 'anthropic'
-            ? t('settings.aiBaseUrlAnthropic')
-            : t('settings.aiBaseUrlOpenai')}
-        </span>
+        <span>{t('settings.aiBaseUrl')}</span>
         <input
           type="url"
           value={s.llm.baseUrl}
@@ -182,7 +276,7 @@ export default function Settings() {
         />
       </label>
       <label className="field">
-        <span>{t('settings.apiKey')}</span>
+        <span>{llmInfo.keyRequired ? t('settings.apiKey') : t('settings.apiKeyOptional')}</span>
         <input
           type="password"
           value={s.llm.apiKey}
@@ -190,6 +284,7 @@ export default function Settings() {
           onChange={(e) => update({ llm: { ...s.llm, apiKey: e.target.value.trim() } })}
         />
       </label>
+      {keyLink(llmInfo)}
       <label className="field">
         <span>{t('settings.aiModel')}</span>
         <select
@@ -201,12 +296,13 @@ export default function Settings() {
         >
           {models.map((m) => (
             <option key={m.id} value={m.id}>
-              {t(m.labelKey)}
+              {modelLabel(m)}
             </option>
           ))}
           <option value="__custom__">{t('settings.customModel')}</option>
         </select>
       </label>
+      <p className="muted">{t('settings.pricesNote')}</p>
       <div className="row">
         {customModel && (
           <label className="field" style={{ flex: 1 }}>
@@ -228,6 +324,12 @@ export default function Settings() {
             onChange={(e) => update({ llm: { ...s.llm, maxTokens: Number(e.target.value) || 4096 } })}
           />
         </label>
+      </div>
+      <div className="row">
+        <button className="btn-ghost" disabled={loadingModels !== null} onClick={() => loadModels('llm')}>
+          {loadingModels === 'llm' ? t('settings.loadingModels') : t('settings.loadModels')}
+        </button>
+        {llmModelsMsg && <span className="muted">{llmModelsMsg}</span>}
       </div>
 
       {mixedContentRisk && <div className="info-box">{t('settings.mixedContent')}</div>}

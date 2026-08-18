@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie'
 import type { AudioChunk, ChatThread, Note, SettingsData, Template } from './types'
 import { detectLang, setLang } from './i18n'
+import { migrateSettings } from './providers'
 
 interface SettingsRow {
   key: string
@@ -33,6 +34,7 @@ export const defaultSettings: SettingsData = {
   lang: 'it',
   transcribe: {
     mode: 'api',
+    provider: 'openai',
     baseUrl: 'https://api.openai.com/v1',
     apiKey: '',
     model: 'whisper-1',
@@ -52,13 +54,13 @@ export async function getSettings(): Promise<SettingsData> {
   const row = await db.settings.get('app')
   if (!row) return { ...structuredClone(defaultSettings), lang: detectLang() }
   const saved = row.value as Partial<SettingsData>
-  return {
+  return migrateSettings({
     ...structuredClone(defaultSettings),
     lang: saved.lang ?? detectLang(),
     ...saved,
     transcribe: { ...defaultSettings.transcribe, ...saved.transcribe },
     llm: { ...defaultSettings.llm, ...saved.llm },
-  }
+  })
 }
 
 export async function saveSettings(value: SettingsData): Promise<void> {

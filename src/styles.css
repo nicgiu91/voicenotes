@@ -467,3 +467,10 @@ audio {
     transform: rotate(360deg);
   }
 }
+
+/* link "Dove prendo la chiave?" sotto il campo API key */
+a.key-link {
+  display: inline-block;
+  margin: -6px 0 14px;
+  font-size: 0.82rem;
+}

@@ -57,18 +57,40 @@ model is downloaded on first use (Fast ~40 MB, Balanced ~80 MB, Accurate ~250 MB
 that it works offline too. It is slow — on a phone it can take longer than the audio itself —
 so it suits short notes; long meetings are better served by the API mode.
 
-**Online service (API).** Needs an **OpenAI-compatible** endpoint:
+**Online service (API).** Pick the service from the dropdown and the app fills in its address
+and the models it offers; the "Where do I get the key?" link opens the page where that
+provider issues API keys.
 
-| Provider | Base URL | Notes |
+| Service | Models offered | Notes |
 |---|---|---|
-| OpenAI | `https://api.openai.com/v1` | model `whisper-1`, API key required |
-| Groq | `https://api.groq.com/openai/v1` | model `whisper-large-v3`, fast and cheap |
-| whisper.cpp on your PC | `http://YOUR-PC-IP:8080/v1` | free, see CORS below |
+| OpenAI | `whisper-1`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` | the GPT-4o models are more accurate but return no timestamps |
+| Groq | `whisper-large-v3-turbo`, `whisper-large-v3` | very fast and cheap |
+| Your own server or another service | anything you type | whisper.cpp, faster-whisper, Speaches… see CORS below |
+
+Any OpenAI-compatible endpoint works: choose "Your own server", type the address, and pick or
+type the model.
 
 ## Configuring the AI
 
-Settings → Artificial intelligence. Pick a provider, then pick a model from the dropdown —
-each option states its speed/quality trade-off and its token cost:
+Settings → Artificial intelligence. Pick a service and the app fills in its address and its
+models — the API key is the only thing you have to supply, and the "Where do I get the key?"
+link goes straight to the page that issues it.
+
+| Service | Why you might pick it |
+|---|---|
+| Anthropic (Claude) | the default; best summaries in Italian and English |
+| OpenAI (ChatGPT) | if you already have an OpenAI key |
+| Google (Gemini) | generous free tier, very cheap models |
+| Groq | the fastest answers, at almost no cost |
+| OpenRouter | dozens of models (including Claude and GPT) behind a single key |
+| Mistral AI | European provider |
+| DeepSeek | among the cheapest |
+| Your own server or another service | Ollama, LM Studio, llama.cpp — free, private, no key needed |
+
+Every service except Anthropic speaks the OpenAI-compatible protocol, so anything that speaks
+it works, whether or not it is in the list.
+
+Each model in the dropdown states its speed/quality trade-off. Prices are shown for Claude:
 
 | Model | Input / output per million tokens | Good for |
 |---|---|---|
@@ -78,9 +100,9 @@ each option states its speed/quality trade-off and its token cost:
 | Claude Opus 4.8 | $5 / $25 | previous generation |
 | Claude Fable 5 | $10 / $50 | most capable, and priced accordingly |
 
-Choosing **OpenAI-compatible** instead lets you point at any local server (Ollama at
-`http://YOUR-PC-IP:11434/v1`, LM Studio, llama.cpp) or another cloud provider; the dropdown
-offers common local models, and "Other" accepts any model name you type.
+For the other services, check their own pricing pages. If the model you want is missing,
+**Refresh the model list** asks the service which models your key can actually use, and
+**Other** lets you type any name by hand.
 
 API keys stay in the browser (IndexedDB) and are never sent anywhere else.
 

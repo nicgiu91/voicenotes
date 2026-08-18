@@ -1,4 +1,5 @@
 import type { LlmSettings } from '../types'
+import { llmProvider } from '../providers'
 import { t } from '../i18n'
 
 export interface LlmMessage {
@@ -13,7 +14,7 @@ export interface LlmMessage {
  */
 export async function chatLLM(system: string, messages: LlmMessage[], s: LlmSettings): Promise<string> {
   if (!s.baseUrl) throw new Error(t('err.llmEndpoint'))
-  if (s.provider === 'anthropic') return chatAnthropic(system, messages, s)
+  if (llmProvider(s.provider).api === 'anthropic') return chatAnthropic(system, messages, s)
   return chatOpenAI(system, messages, s)
 }
 
@@ -53,15 +54,28 @@ async function chatOpenAI(system: string, messages: LlmMessage[], s: LlmSettings
   const url = `${s.baseUrl.replace(/\/+$/, '')}/chat/completions`
   const headers: Record<string, string> = { 'content-type': 'application/json' }
   if (s.apiKey) headers.Authorization = `Bearer ${s.apiKey}`
-  const res = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model: s.model,
-      max_tokens: s.maxTokens || 4096,
-      messages: [{ role: 'system', content: system }, ...messages],
-    }),
-  })
+
+  const send = (limitField: 'max_tokens' | 'max_completion_tokens') =>
+    fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: s.model,
+        [limitField]: s.maxTokens || 4096,
+        messages: [{ role: 'system', content: system }, ...messages],
+      }),
+    })
+
+  let res = await send('max_tokens')
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    // i modelli OpenAI più recenti rifiutano max_tokens e vogliono max_completion_tokens
+    if (res.status === 400 && body.includes('max_completion_tokens')) {
+      res = await send('max_completion_tokens')
+    } else {
+      throw new Error(t('err.llmUnreachable', { status: res.status, body: body.slice(0, 300) }))
+    }
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => '')
     throw new Error(t('err.llmUnreachable', { status: res.status, body: body.slice(0, 300) }))
@@ -73,5 +87,5 @@ async function chatOpenAI(system: string, messages: LlmMessage[], s: LlmSettings
 }
 
 export function llmConfigured(s: LlmSettings): boolean {
-  return Boolean(s.baseUrl && s.model && (s.apiKey || s.provider === 'openai'))
+  return Boolean(s.baseUrl && s.model && (s.apiKey || !llmProvider(s.provider).keyRequired))
 }

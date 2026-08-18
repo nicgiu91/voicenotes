@@ -45,18 +45,41 @@ Alla prima trascrizione scarica il modello (Veloce ~40 MB, Equilibrato ~80 MB, P
 durata dell'audio stesso — quindi è adatta a note brevi; per le riunioni lunghe conviene la
 modalità API.
 
-**Servizio online (API).** Serve un endpoint **OpenAI-compatible**:
+**Servizio online (API).** Scegli il servizio dal menu a tendina: l'app riempie da sola
+indirizzo e modelli, e il link "Dove prendo la chiave?" porta alla pagina dove quel servizio
+rilascia le API key.
 
-| Provider | URL base | Note |
+| Servizio | Modelli proposti | Note |
 |---|---|---|
-| OpenAI | `https://api.openai.com/v1` | modello `whisper-1`, serve API key |
-| Groq | `https://api.groq.com/openai/v1` | modello `whisper-large-v3`, veloce ed economico |
-| whisper.cpp sul PC | `http://IP-DEL-PC:8080/v1` | gratuito, vedi CORS più sotto |
+| OpenAI | `whisper-1`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` | i modelli GPT-4o sono più precisi ma non danno i timestamp |
+| Groq | `whisper-large-v3-turbo`, `whisper-large-v3` | velocissimo ed economico |
+| Il tuo server o un altro servizio | quello che scrivi tu | whisper.cpp, faster-whisper, Speaches… vedi CORS più sotto |
+
+Va bene qualunque endpoint OpenAI-compatible: scegli "Il tuo server", scrivi l'indirizzo e
+seleziona (o scrivi) il modello.
 
 ## Configurare l'AI
 
-Impostazioni → Intelligenza artificiale. Scegli il provider, poi il modello dal menu a
-tendina: ogni voce indica prestazioni e consumo di token.
+Impostazioni → Intelligenza artificiale. Scegli il servizio e l'app riempie indirizzo e
+modelli: a te resta solo la chiave, e il link "Dove prendo la chiave?" porta dritto alla
+pagina che la rilascia.
+
+| Servizio | Perché sceglierlo |
+|---|---|
+| Anthropic (Claude) | quello predefinito: i riepiloghi migliori in italiano e inglese |
+| OpenAI (ChatGPT) | se hai già una chiave OpenAI |
+| Google (Gemini) | piano gratuito generoso, modelli molto economici |
+| Groq | le risposte più veloci, a costo quasi nullo |
+| OpenRouter | decine di modelli (Claude e GPT compresi) con una chiave sola |
+| Mistral AI | provider europeo |
+| DeepSeek | tra i più economici |
+| Il tuo server o un altro servizio | Ollama, LM Studio, llama.cpp: gratis, privato, senza chiave |
+
+Tutti i servizi tranne Anthropic parlano il protocollo OpenAI-compatible, quindi funziona
+qualunque servizio lo usi, anche se non è in elenco.
+
+Ogni modello nel menu dice quanto è bravo e quanto consuma. I prezzi indicati valgono per
+Claude:
 
 | Modello | Costo per milione di token (input/output) | Adatto a |
 |---|---|---|
@@ -66,9 +89,9 @@ tendina: ogni voce indica prestazioni e consumo di token.
 | Claude Opus 4.8 | $5 / $25 | generazione precedente |
 | Claude Fable 5 | $10 / $50 | il più capace, e si paga |
 
-Scegliendo **OpenAI-compatible** puoi puntare a un server locale (Ollama su
-`http://IP-DEL-PC:11434/v1`, LM Studio, llama.cpp) o a un altro provider cloud; il menu
-propone i modelli locali più comuni e la voce "Altro" accetta qualsiasi nome tu scriva.
+Per gli altri servizi controlla il listino sul loro sito. Se il modello che cerchi non è in
+elenco, **Aggiorna l'elenco dei modelli** chiede al servizio quali modelli la tua chiave può
+davvero usare, e **Altro** ti lascia scrivere qualsiasi nome.
 
 Le chiavi API restano solo nel browser (IndexedDB) e non vengono mai inviate altrove.
 
