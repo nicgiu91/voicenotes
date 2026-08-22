@@ -58,6 +58,7 @@ export type LlmProvider =
   | 'anthropic'
   | 'openai'
   | 'google'
+  | 'xai'
   | 'openrouter'
   | 'mistral'
   | 'deepseek'

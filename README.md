@@ -80,6 +80,7 @@ link goes straight to the page that issues it.
 | Anthropic (Claude) | the default; best summaries in Italian and English |
 | OpenAI (ChatGPT) | if you already have an OpenAI key |
 | Google (Gemini) | generous free tier, very cheap models |
+| xAI (Grok) | Grok models, OpenAI-compatible |
 | OpenRouter | dozens of models (including Claude and GPT) behind a single key |
 | Mistral AI | European provider |
 | DeepSeek | among the cheapest |

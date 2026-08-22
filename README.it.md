@@ -68,6 +68,7 @@ pagina che la rilascia.
 | Anthropic (Claude) | quello predefinito: i riepiloghi migliori in italiano e inglese |
 | OpenAI (ChatGPT) | se hai già una chiave OpenAI |
 | Google (Gemini) | piano gratuito generoso, modelli molto economici |
+| xAI (Grok) | i modelli Grok, protocollo OpenAI-compatible |
 | OpenRouter | decine di modelli (Claude e GPT compresi) con una chiave sola |
 | Mistral AI | provider europeo |
 | DeepSeek | tra i più economici |

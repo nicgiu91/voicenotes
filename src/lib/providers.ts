@@ -101,6 +101,19 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     ],
   },
   {
+    id: 'xai',
+    labelKey: 'provider.xai',
+    api: 'openai',
+    baseUrl: 'https://api.x.ai/v1',
+    keyUrl: 'https://console.x.ai',
+    keyRequired: true,
+    models: [
+      { id: 'grok-4.6', labelKey: 'models.grok46' },
+      { id: 'grok-4.5', labelKey: 'models.grok45' },
+      { id: 'grok-4.3', labelKey: 'models.grok43' },
+    ],
+  },
+  {
     id: 'openrouter',
     labelKey: 'provider.openrouter',
     api: 'openai',
