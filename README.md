@@ -107,6 +107,40 @@ For the other services, check their own pricing pages. If the model you want is 
 **Refresh the model list** asks the service which models your key can actually use, and
 **Other** lets you type any name by hand.
 
+### Two models instead of one
+
+The app does five different jobs with the AI, and not all of them need the best model.
+That is why there are two dropdowns:
+
+| Setting | Used for |
+|---|---|
+| **AI model** | template summaries, mind map, questions in Ask |
+| **Model for quick jobs** | the note's automatic title, marking who is speaking |
+
+The title is generated on every transcription and is the simplest thing the app ever asks the
+AI to do: handing it to a cheap model (Haiku, Gemini Flash, GPT-4o mini) cuts the cost exactly
+where it repeats most, with no visible difference. If you would rather use one model for
+everything, pick the same one in both dropdowns.
+
+### Privacy: what each service does with your data
+
+Under each service the app states what that service declares it does with what you send, so the
+choice is not only about price. In short:
+
+| Service | Trains on your data? |
+|---|---|
+| Your own server (Ollama, LM Studio, whisper.cpp) | the text never leaves your network |
+| On-device transcription | the audio never leaves the phone |
+| Anthropic, OpenAI | no, not on data sent through the API |
+| xAI (Grok) | no; requests stay on their servers for 30 days for abuse checks |
+| Mistral AI | no; European provider, data in the European Union |
+| Google (Gemini) | **yes on the free tier**, and human reviewers may read it; no with billing enabled |
+| DeepSeek | **yes**, and data is processed in China; you can opt out |
+| OpenRouter | depends on the final model; you can forbid data retention in your account |
+
+These are the terms the services declared when this page was written: if your content is
+sensitive, check on their site before using them.
+
 API keys stay in the browser (IndexedDB) and are never sent anywhere else.
 
 ## Local servers: CORS and mixed content

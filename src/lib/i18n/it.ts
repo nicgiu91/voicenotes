@@ -117,6 +117,32 @@ export const it = {
   'settings.pricesNote':
     'I prezzi indicati valgono per Claude; per gli altri servizi controlla il listino sul loro sito. Se il modello che cerchi non è in elenco, usa “Aggiorna l’elenco dei modelli” oppure “Altro”.',
 
+  'settings.fastModel': 'Modello per i lavori veloci',
+  'settings.fastModelInfo':
+    'Usato per il titolo automatico e per l’indicazione di chi parla, dove il modello migliore sarebbe uno spreco. Riepiloghi, mappa mentale e Ask usano sempre il modello qui sopra. Se preferisci un modello solo per tutto, scegli qui lo stesso.',
+  'settings.privacyNote':
+    'Le note sulla privacy riportano quanto dichiarano i servizi: possono cambiare, quindi se il contenuto è delicato verificale sul loro sito.',
+
+  'privacy.anthropic': 'Privacy: Anthropic dichiara di non usare per l’addestramento i dati inviati via API.',
+  'privacy.openai': 'Privacy: OpenAI dichiara di non usare per l’addestramento i dati inviati via API.',
+  'privacy.google':
+    'Privacy: sul piano gratuito Google usa i tuoi testi per migliorare i suoi prodotti e prevede che dei revisori umani possano leggerli. Con la fatturazione attiva non succede. Sul piano gratuito evita contenuti riservati.',
+  'privacy.xai':
+    'Privacy: xAI dichiara di non addestrare sui dati inviati via API; le richieste restano sui suoi server 30 giorni per i controlli antiabuso.',
+  'privacy.openrouter':
+    'Privacy: le richieste passano da OpenRouter prima di arrivare al modello, quindi c’è un intermediario in più. Nel tuo account OpenRouter puoi vietare la conservazione dei dati.',
+  'privacy.mistral': 'Privacy: provider europeo, dati trattati nell’Unione Europea e soggetti al GDPR.',
+  'privacy.deepseek':
+    'Privacy: i dati sono trattati in Cina e usati anche per addestrare i modelli, salvo chiedere l’esclusione. Da evitare per contenuti riservati.',
+  'privacy.custom':
+    'Privacy massima se l’indirizzo è un server tuo (Ollama, LM Studio): i testi non escono dalla tua rete e nessuno li legge. Se invece punti a un servizio esterno valgono le condizioni di quel servizio.',
+
+  'tprivacy.openai': 'Privacy: OpenAI dichiara di non usare per l’addestramento gli audio inviati via API.',
+  'tprivacy.custom':
+    'Privacy massima se l’indirizzo è un server tuo: l’audio non esce dalla tua rete. Se invece punti a un servizio esterno valgono le condizioni di quel servizio.',
+  'tprivacy.local':
+    'Privacy massima: l’audio non lascia questo dispositivo, non viene inviato a nessun servizio e non serve nessuna chiave.',
+
   'provider.anthropic': 'Anthropic (Claude)',
   'provider.openai': 'OpenAI (ChatGPT)',
   'provider.google': 'Google (Gemini)',

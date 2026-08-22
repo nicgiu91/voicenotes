@@ -43,6 +43,10 @@ export interface ProviderInfo<Id extends string> {
   defaultModel?: string
   /** indirizzo per l'elenco dei modelli, se il servizio non lo espone come gli altri */
   modelsUrl?: string
+  /** modello economico proposto per i lavori meccanici (default: quello principale) */
+  fastModel?: string
+  /** cosa dichiara il servizio sui dati che gli mandi */
+  privacyKey: TKey
 }
 
 export type LlmProviderInfo = ProviderInfo<LlmProvider>
@@ -62,6 +66,8 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     keyUrl: 'https://console.anthropic.com/settings/keys',
     keyRequired: true,
     defaultModel: 'claude-sonnet-5',
+    fastModel: 'claude-haiku-4-5',
+    privacyKey: 'privacy.anthropic',
     models: [
       { id: 'claude-haiku-4-5', labelKey: 'models.haiku45' },
       { id: 'claude-sonnet-5', labelKey: 'models.sonnet5' },
@@ -77,6 +83,8 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     baseUrl: 'https://api.openai.com/v1',
     keyUrl: 'https://platform.openai.com/api-keys',
     keyRequired: true,
+    fastModel: 'gpt-4o-mini',
+    privacyKey: 'privacy.openai',
     models: [
       { id: 'gpt-4o-mini', labelKey: 'models.gpt4oMini' },
       { id: 'gpt-4.1-mini', labelKey: 'models.gpt41Mini' },
@@ -94,6 +102,8 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     keyRequired: true,
     // Gemini elenca i modelli fuori dal protocollo OpenAI-compatible
     modelsUrl: 'https://generativelanguage.googleapis.com/v1beta/models',
+    fastModel: 'gemini-2.0-flash',
+    privacyKey: 'privacy.google',
     models: [
       { id: 'gemini-2.5-flash', labelKey: 'models.gemini25Flash' },
       { id: 'gemini-2.5-pro', labelKey: 'models.gemini25Pro' },
@@ -107,6 +117,8 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     baseUrl: 'https://api.x.ai/v1',
     keyUrl: 'https://console.x.ai',
     keyRequired: true,
+    fastModel: 'grok-4.3',
+    privacyKey: 'privacy.xai',
     models: [
       { id: 'grok-4.6', labelKey: 'models.grok46' },
       { id: 'grok-4.5', labelKey: 'models.grok45' },
@@ -120,6 +132,7 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     baseUrl: 'https://openrouter.ai/api/v1',
     keyUrl: 'https://openrouter.ai/keys',
     keyRequired: true,
+    privacyKey: 'privacy.openrouter',
     // OpenRouter smista verso decine di modelli: conviene leggerli dal servizio
     models: [{ id: 'openrouter/auto', labelKey: 'models.openrouterAuto' }],
   },
@@ -130,6 +143,8 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     baseUrl: 'https://api.mistral.ai/v1',
     keyUrl: 'https://console.mistral.ai/api-keys',
     keyRequired: true,
+    fastModel: 'mistral-small-latest',
+    privacyKey: 'privacy.mistral',
     models: [
       { id: 'mistral-small-latest', labelKey: 'models.mistralSmall' },
       { id: 'mistral-large-latest', labelKey: 'models.mistralLarge' },
@@ -142,6 +157,8 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     baseUrl: 'https://api.deepseek.com/v1',
     keyUrl: 'https://platform.deepseek.com/api_keys',
     keyRequired: true,
+    fastModel: 'deepseek-chat',
+    privacyKey: 'privacy.deepseek',
     models: [
       { id: 'deepseek-chat', labelKey: 'models.deepseekChat' },
       { id: 'deepseek-reasoner', labelKey: 'models.deepseekReasoner' },
@@ -154,6 +171,7 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     baseUrl: 'http://localhost:11434/v1',
     keyRequired: false,
     ownUrl: true,
+    privacyKey: 'privacy.custom',
     models: [
       { id: 'llama3.1', labelKey: 'models.llama31' },
       { id: 'qwen2.5', labelKey: 'models.qwen25' },
@@ -171,6 +189,7 @@ export const TRANSCRIBE_PROVIDERS: TranscribeProviderInfo[] = [
     baseUrl: 'https://api.openai.com/v1',
     keyUrl: 'https://platform.openai.com/api-keys',
     keyRequired: true,
+    privacyKey: 'tprivacy.openai',
     models: [
       { id: 'whisper-1', labelKey: 'tmodels.whisper1' },
       { id: 'gpt-4o-mini-transcribe', labelKey: 'tmodels.gpt4oMiniTranscribe' },
@@ -184,6 +203,7 @@ export const TRANSCRIBE_PROVIDERS: TranscribeProviderInfo[] = [
     baseUrl: 'http://localhost:8080/v1',
     keyRequired: false,
     ownUrl: true,
+    privacyKey: 'tprivacy.custom',
     models: [
       { id: 'whisper-1', labelKey: 'tmodels.whisper1' },
       { id: 'whisper-large-v3', labelKey: 'tmodels.largeV3' },
@@ -199,6 +219,14 @@ export const TRANSCRIBE_PROVIDERS: TranscribeProviderInfo[] = [
 export function nextBaseUrl(info: ProviderInfo<string>, current: string, all: ProviderInfo<string>[]): string {
   const wasPreset = all.some((p) => !p.ownUrl && current.startsWith(p.baseUrl))
   return info.ownUrl && !wasPreset && current ? current : info.baseUrl
+}
+
+/**
+ * Modello per i lavori meccanici. Se il servizio non ne propone uno piu'
+ * economico si resta sul principale: nessuna sorpresa, stesso comportamento.
+ */
+export function fastModelFor(info: ProviderInfo<string>): string {
+  return info.fastModel ?? defaultModelFor(info)
 }
 
 export function defaultModelFor(info: ProviderInfo<string>): string {
@@ -277,6 +305,8 @@ export async function fetchModels(
 export function migrateSettings(saved: SettingsData): SettingsData {
   const llm = { ...saved.llm }
   if (llm.provider === 'openai' && !llm.baseUrl.includes('api.openai.com')) llm.provider = 'custom'
+  // impostazioni salvate prima del modello leggero: si parte da quello del servizio
+  if (!llm.fastModel) llm.fastModel = llmProvider(llm.provider).fastModel ?? llm.model
   const transcribe = { ...saved.transcribe }
   if (!TRANSCRIBE_PROVIDERS.some((p) => p.id === transcribe.provider)) {
     const match = TRANSCRIBE_PROVIDERS.find(

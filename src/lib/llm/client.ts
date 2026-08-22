@@ -12,6 +12,14 @@ export interface LlmMessage {
  * risposta. Supporta Anthropic e qualunque endpoint OpenAI-compatible
  * (LM Studio, Ollama, llama.cpp server, OpenAI, Gemini, OpenRouter...).
  */
+/**
+ * Stesse impostazioni ma col modello leggero: per i lavori meccanici
+ * (titolo automatico, diarizzazione) dove il modello migliore e' uno spreco.
+ */
+export function fastLlm(s: LlmSettings): LlmSettings {
+  return s.fastModel ? { ...s, model: s.fastModel } : s
+}
+
 export async function chatLLM(system: string, messages: LlmMessage[], s: LlmSettings): Promise<string> {
   if (!s.baseUrl) throw new Error(t('err.llmEndpoint'))
   if (llmProvider(s.provider).api === 'anthropic') return chatAnthropic(system, messages, s)

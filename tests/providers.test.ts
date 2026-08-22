@@ -3,6 +3,7 @@ import {
   LLM_PROVIDERS,
   TRANSCRIBE_PROVIDERS,
   defaultModelFor,
+  fastModelFor,
   fetchModels,
   isCustomModel,
   llmProvider,
@@ -49,6 +50,26 @@ describe('elenco dei servizi', () => {
     for (const p of all) {
       expect(p.models.some((m) => m.id === defaultModelFor(p))).toBe(true)
     }
+  })
+
+  test('ogni servizio dice cosa fa dei dati che gli mandi', () => {
+    for (const p of all) {
+      expect(dictIt[p.privacyKey], `${p.id} non dice nulla sulla privacy`).toBeTruthy()
+    }
+  })
+
+  test('il modello leggero appartiene al servizio', () => {
+    for (const p of LLM_PROVIDERS) {
+      expect(
+        p.models.some((m) => m.id === fastModelFor(p)),
+        `il modello leggero di ${p.id} non è fra i suoi`,
+      ).toBe(true)
+    }
+  })
+
+  test('senza modello leggero dedicato si resta sul principale', () => {
+    const senza = { ...llmProvider('custom'), fastModel: undefined }
+    expect(fastModelFor(senza)).toBe(defaultModelFor(senza))
   })
 
   test('i servizi sconosciuti ricadono sul primo dell’elenco', () => {
@@ -162,6 +183,20 @@ describe('impostazioni salvate prima dei nuovi servizi', () => {
 
   test('Anthropic non viene toccato', () => {
     expect(saved({ provider: 'anthropic' }).llm.provider).toBe('anthropic')
+  })
+
+  test('le impostazioni senza modello leggero prendono quello del servizio', () => {
+    expect(saved({ provider: 'anthropic', fastModel: '' }).llm.fastModel).toBe('claude-haiku-4-5')
+    expect(saved({ provider: 'google', fastModel: '' }).llm.fastModel).toBe('gemini-2.0-flash')
+  })
+
+  test('un modello leggero già scelto non viene sovrascritto', () => {
+    expect(saved({ provider: 'anthropic', fastModel: 'mio-modello' }).llm.fastModel).toBe('mio-modello')
+  })
+
+  test('se il servizio non ne propone uno leggero si tiene il principale', () => {
+    const s = saved({ provider: 'custom', baseUrl: 'http://localhost:11434/v1', model: 'qwen2.5', fastModel: '' })
+    expect(s.llm.fastModel).toBe('qwen2.5')
   })
 
   test('la trascrizione senza servizio lo deduce dall’URL salvato', () => {

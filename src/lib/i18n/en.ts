@@ -104,6 +104,32 @@ export const en: Record<TKey, string> = {
   'settings.pricesNote':
     'The prices shown apply to Claude; for the other services check their own pricing page. If the model you want is missing, use “Refresh the model list” or “Other”.',
 
+  'settings.fastModel': 'Model for quick jobs',
+  'settings.fastModelInfo':
+    'Used for the automatic title and for marking who is speaking, where the best model would be a waste. Summaries, mind map and Ask always use the model above. If you would rather have one model for everything, pick the same one here.',
+  'settings.privacyNote':
+    'The privacy notes report what each service declares: this can change, so if your content is sensitive check on their site.',
+
+  'privacy.anthropic': 'Privacy: Anthropic states it does not train on data sent through the API.',
+  'privacy.openai': 'Privacy: OpenAI states it does not train on data sent through the API.',
+  'privacy.google':
+    'Privacy: on the free tier Google uses your text to improve its products and human reviewers may read it. With billing enabled it does not. Avoid sensitive content on the free tier.',
+  'privacy.xai':
+    'Privacy: xAI states it does not train on data sent through the API; requests stay on its servers for 30 days for abuse checks.',
+  'privacy.openrouter':
+    'Privacy: requests go through OpenRouter before reaching the model, so there is one more middleman. In your OpenRouter account you can forbid data retention.',
+  'privacy.mistral': 'Privacy: European provider, data processed in the European Union and covered by the GDPR.',
+  'privacy.deepseek':
+    'Privacy: data is processed in China and also used to train the models unless you opt out. Avoid it for sensitive content.',
+  'privacy.custom':
+    'Maximum privacy if the address is your own server (Ollama, LM Studio): the text never leaves your network and nobody reads it. If you point it at an external service, that service’s terms apply.',
+
+  'tprivacy.openai': 'Privacy: OpenAI states it does not train on audio sent through the API.',
+  'tprivacy.custom':
+    'Maximum privacy if the address is your own server: the audio never leaves your network. If you point it at an external service, that service’s terms apply.',
+  'tprivacy.local':
+    'Maximum privacy: the audio never leaves this device, it is not sent to any service and no key is needed.',
+
   'provider.anthropic': 'Anthropic (Claude)',
   'provider.openai': 'OpenAI (ChatGPT)',
   'provider.google': 'Google (Gemini)',

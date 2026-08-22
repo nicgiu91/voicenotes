@@ -96,6 +96,40 @@ Per gli altri servizi controlla il listino sul loro sito. Se il modello che cerc
 elenco, **Aggiorna l'elenco dei modelli** chiede al servizio quali modelli la tua chiave può
 davvero usare, e **Altro** ti lascia scrivere qualsiasi nome.
 
+### Due modelli invece di uno
+
+L'app fa cinque lavori diversi con l'AI, e non tutti hanno bisogno del modello migliore.
+Per questo le tendine sono due:
+
+| Impostazione | Usata per |
+|---|---|
+| **Modello AI** | riepiloghi dai template, mappa mentale, domande in Ask |
+| **Modello per i lavori veloci** | titolo automatico della nota, indicazione di chi parla |
+
+Il titolo viene generato a ogni trascrizione ed è il lavoro più semplice che l'app chieda
+all'AI: affidarlo a un modello economico (Haiku, Gemini Flash, GPT-4o mini) taglia la spesa
+proprio dove si ripete di più, senza differenze visibili nel risultato. Se preferisci un
+modello solo per tutto, scegli lo stesso in entrambe le tendine.
+
+### Privacy: cosa fa ogni servizio dei tuoi dati
+
+Sotto ogni servizio l'app scrive cosa quel servizio dichiara di fare con quello che gli mandi,
+così la scelta non dipende solo dal prezzo. In sintesi:
+
+| Servizio | Usa i tuoi dati per addestrare? |
+|---|---|
+| Il tuo server (Ollama, LM Studio, whisper.cpp) | i testi non escono dalla tua rete |
+| Trascrizione sul dispositivo | l'audio non lascia il telefono |
+| Anthropic, OpenAI | no, non su quanto inviato via API |
+| xAI (Grok) | no; le richieste restano 30 giorni sui loro server per i controlli antiabuso |
+| Mistral AI | no; provider europeo, dati nell'Unione Europea |
+| Google (Gemini) | **sì sul piano gratuito**, con possibile lettura da parte di revisori umani; no con la fatturazione attiva |
+| DeepSeek | **sì**, e i dati sono trattati in Cina; si può chiedere l'esclusione |
+| OpenRouter | dipende dal modello finale; nel tuo account puoi vietare la conservazione dei dati |
+
+Sono le condizioni dichiarate dai servizi quando è stata scritta questa pagina: se il
+contenuto è delicato, verificale sul loro sito prima di usarli.
+
 Le chiavi API restano solo nel browser (IndexedDB) e non vengono mai inviate altrove.
 
 ## Server locali: CORS e mixed content

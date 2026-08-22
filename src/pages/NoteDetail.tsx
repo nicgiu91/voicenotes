@@ -5,7 +5,7 @@ import type { Note, Template } from '../lib/types'
 import { assembleAudio, audioExtension } from '../lib/audio/assemble'
 import { formatDate, formatDuration, isDefaultNoteTitle, slugify } from '../lib/format'
 import { transcribeNote } from '../lib/transcribe/client'
-import { chatLLM, llmConfigured } from '../lib/llm/client'
+import { chatLLM, fastLlm, llmConfigured } from '../lib/llm/client'
 import { diarizzazionePrompt, mindmapPrompt, prompt, titoloPrompt } from '../lib/llm/prompts'
 import { markdownToMermaidMindmap } from '../lib/llm/mindmap'
 import TranscriptView from '../components/TranscriptView'
@@ -128,7 +128,7 @@ export default function NoteDetail() {
           const title = await chatLLM(
             prompt(titoloPrompt),
             [{ role: 'user', content: transcript.text.slice(0, 8000) }],
-            settings.llm,
+            fastLlm(settings.llm),
           )
           await db.notes.update(note.id, { title: title.replace(/^["']|["']$/g, '').slice(0, 120) })
         } catch {
@@ -197,7 +197,7 @@ export default function NoteDetail() {
       const result = await chatLLM(
         prompt(diarizzazionePrompt),
         [{ role: 'user', content: transcriptText }],
-        llm,
+        fastLlm(llm),
       )
       const summaries = { ...(note.summaries ?? {}), diarizzazione: result }
       await db.notes.update(note.id, { summaries })

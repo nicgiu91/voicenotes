@@ -69,6 +69,8 @@ export interface LlmSettings {
   baseUrl: string
   apiKey: string
   model: string
+  /** modello per i lavori meccanici (titolo, diarizzazione): piu' economico */
+  fastModel: string
   maxTokens: number
 }
 

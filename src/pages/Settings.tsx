@@ -8,6 +8,7 @@ import {
   LLM_PROVIDERS,
   TRANSCRIBE_PROVIDERS,
   defaultModelFor,
+  fastModelFor,
   fetchModels,
   isCustomModel,
   llmProvider,
@@ -56,6 +57,10 @@ export default function Settings() {
   const llmInfo = llmProvider(s.llm.provider)
   const models = llmModels ?? llmInfo.models
   const customModel = isCustomModel(models, s.llm.model)
+  // il modello leggero puo' essere stato scritto a mano: va tenuto in elenco
+  const fastModels = isCustomModel(models, s.llm.fastModel)
+    ? [{ id: s.llm.fastModel, label: s.llm.fastModel }, ...models]
+    : models
 
   const trInfo = transcribeProvider(s.transcribe.provider)
   const trModelList = trModels ?? trInfo.models
@@ -135,6 +140,7 @@ export default function Settings() {
               ))}
             </select>
           </label>
+          <p className="muted">{t('tprivacy.local')}</p>
           <div className="info-box">{t('settings.localInfo')}</div>
         </>
       ) : (
@@ -165,6 +171,7 @@ export default function Settings() {
               ))}
             </select>
           </label>
+          <p className="muted">{t(trInfo.privacyKey)}</p>
           <label className="field">
             <span>{t('settings.baseUrl')}</span>
             <input
@@ -255,6 +262,7 @@ export default function Settings() {
                 provider,
                 // il modello di un provider non esiste sull'altro: si riparte dal consigliato
                 model: defaultModelFor(info),
+                fastModel: fastModelFor(info),
                 baseUrl: nextBaseUrl(info, s.llm.baseUrl, LLM_PROVIDERS),
               },
             })
@@ -267,6 +275,7 @@ export default function Settings() {
           ))}
         </select>
       </label>
+      <p className="muted">{t(llmInfo.privacyKey)}</p>
       <label className="field">
         <span>{t('settings.aiBaseUrl')}</span>
         <input
@@ -302,7 +311,22 @@ export default function Settings() {
           <option value="__custom__">{t('settings.customModel')}</option>
         </select>
       </label>
+      <label className="field">
+        <span>{t('settings.fastModel')}</span>
+        <select
+          value={s.llm.fastModel}
+          onChange={(e) => update({ llm: { ...s.llm, fastModel: e.target.value } })}
+        >
+          {fastModels.map((m) => (
+            <option key={m.id} value={m.id}>
+              {modelLabel(m)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <p className="muted">{t('settings.fastModelInfo')}</p>
       <p className="muted">{t('settings.pricesNote')}</p>
+      <p className="muted">{t('settings.privacyNote')}</p>
       <div className="row">
         {customModel && (
           <label className="field" style={{ flex: 1 }}>
