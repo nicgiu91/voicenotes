@@ -155,6 +155,14 @@ così la scelta non dipende solo dal prezzo. In sintesi:
 Sono le condizioni dichiarate dai servizi quando è stata scritta questa pagina: se il
 contenuto è delicato, verificale sul loro sito prima di usarli.
 
+### Avvisi sulla configurazione
+
+Sotto ogni sezione l'app segnala da sola le storture più comuni: un indirizzo incollato nel
+campo della chiave, la chiave di un altro servizio (riconosciuta dall'inizio: `sk-ant-`,
+`xai-`, `AIza`…), un indirizzo che non corrisponde al servizio scelto, spazi o a capo finiti
+dentro la chiave. Sono avvisi, non blocchi: se sai quello che fai, procedi lo stesso. Con
+"Il tuo server" non viene giudicato nulla, perché lì indirizzo e chiave li decidi tu.
+
 Le chiavi API restano solo nel browser (IndexedDB) e non vengono mai inviate altrove.
 
 ## Server locali: CORS e mixed content

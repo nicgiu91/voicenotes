@@ -220,6 +220,18 @@ export const en: Record<TKey, string> = {
   'settings.customModel': 'Other (type the model name)',
   'settings.customModelField': 'Model name',
   'settings.maxTokens': 'Max tokens',
+  'warn.keyLooksLikeUrl':
+    'Careful: the key field contains a web address, not a key. The key is a string of letters and numbers and goes in the field below; the address belongs in “Base URL”.',
+  'warn.keyHasSpaces':
+    'Careful: the key contains spaces or a line break. That usually comes from a bad copy: paste it again in full, with no extra lines.',
+  'warn.urlMismatch':
+    'Careful: you picked {service}, but the address points elsewhere. That service answers on {host}. If this is not intentional, pick the service again from the menu and the address fixes itself.',
+  'warn.keyOtherService':
+    'Careful: this looks like a {other} key, but the selected service is {service}. Each service only accepts its own.',
+  'warn.keyPrefix':
+    'Careful: this key does not look like a {service} one — theirs start with “{prefix}”. It may belong to another service.',
+  'warn.keyTooShort':
+    'Careful: the key looks incomplete, it is shorter than usual. Check you copied all of it.',
   'settings.mixedContent':
     'Warning: you are using the app over HTTPS with an http:// endpoint — the browser will block the request ("mixed content"). Fixes: serve the local server over HTTPS, or open the app over HTTP from your PC. Details are in the project README.',
   'settings.saveSettings': 'Save settings',

@@ -47,6 +47,8 @@ export interface ProviderInfo<Id extends string> {
   fastModel?: string
   /** cosa dichiara il servizio sui dati che gli mandi */
   privacyKey: TKey
+  /** inizio tipico della chiave, per accorgersi di quelle di un altro servizio */
+  keyPrefix?: string
 }
 
 export type LlmProviderInfo = ProviderInfo<LlmProvider>
@@ -68,6 +70,7 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     defaultModel: 'claude-sonnet-5',
     fastModel: 'claude-haiku-4-5',
     privacyKey: 'privacy.anthropic',
+    keyPrefix: 'sk-ant-',
     models: [
       { id: 'claude-haiku-4-5', labelKey: 'models.haiku45' },
       { id: 'claude-sonnet-5', labelKey: 'models.sonnet5' },
@@ -85,6 +88,7 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     keyRequired: true,
     fastModel: 'gpt-4o-mini',
     privacyKey: 'privacy.openai',
+    keyPrefix: 'sk-',
     models: [
       { id: 'gpt-4o-mini', labelKey: 'models.gpt4oMini' },
       { id: 'gpt-4.1-mini', labelKey: 'models.gpt41Mini' },
@@ -104,6 +108,7 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     modelsUrl: 'https://generativelanguage.googleapis.com/v1beta/models',
     fastModel: 'gemini-2.0-flash',
     privacyKey: 'privacy.google',
+    keyPrefix: 'AIza',
     models: [
       { id: 'gemini-2.5-flash', labelKey: 'models.gemini25Flash' },
       { id: 'gemini-2.5-pro', labelKey: 'models.gemini25Pro' },
@@ -119,6 +124,7 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     keyRequired: true,
     fastModel: 'grok-4.3',
     privacyKey: 'privacy.xai',
+    keyPrefix: 'xai-',
     models: [
       { id: 'grok-4.6', labelKey: 'models.grok46' },
       { id: 'grok-4.5', labelKey: 'models.grok45' },
@@ -133,6 +139,7 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     keyUrl: 'https://openrouter.ai/keys',
     keyRequired: true,
     privacyKey: 'privacy.openrouter',
+    keyPrefix: 'sk-or-',
     // OpenRouter smista verso decine di modelli: conviene leggerli dal servizio
     models: [{ id: 'openrouter/auto', labelKey: 'models.openrouterAuto' }],
   },
@@ -190,6 +197,7 @@ export const TRANSCRIBE_PROVIDERS: TranscribeProviderInfo[] = [
     keyUrl: 'https://platform.openai.com/api-keys',
     keyRequired: true,
     privacyKey: 'tprivacy.openai',
+    keyPrefix: 'sk-',
     models: [
       { id: 'whisper-1', labelKey: 'tmodels.whisper1' },
       { id: 'gpt-4o-mini-transcribe', labelKey: 'tmodels.gpt4oMiniTranscribe' },

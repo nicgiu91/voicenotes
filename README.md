@@ -166,6 +166,14 @@ choice is not only about price. In short:
 These are the terms the services declared when this page was written: if your content is
 sensitive, check on their site before using them.
 
+### Configuration warnings
+
+Under each section the app flags the common mix-ups by itself: an address pasted into the key
+field, a key belonging to another service (recognised by its start: `sk-ant-`, `xai-`,
+`AIza`…), an address that does not match the selected service, spaces or line breaks inside
+the key. They are warnings, not blocks: if you know what you are doing, carry on. With "Your
+own server" nothing is judged, because there the address and key are yours to choose.
+
 API keys stay in the browser (IndexedDB) and are never sent anywhere else.
 
 ## Local servers: CORS and mixed content

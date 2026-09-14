@@ -19,6 +19,7 @@ import {
   type ProviderInfo,
 } from '../lib/providers'
 import { useT, type Lang } from '../lib/i18n'
+import { checkProviderConfig } from '../lib/configCheck'
 
 export default function Settings() {
   const { t } = useT()
@@ -65,6 +66,11 @@ export default function Settings() {
   const trInfo = transcribeProvider(s.transcribe.provider)
   const trModelList = trModels ?? trInfo.models
   const trCustomModel = isCustomModel(trModelList, s.transcribe.model)
+  const llmWarnings = checkProviderConfig(llmInfo, s.llm.baseUrl, s.llm.apiKey, t(llmInfo.labelKey))
+  const trWarnings =
+    s.transcribe.mode === 'api'
+      ? checkProviderConfig(trInfo, s.transcribe.baseUrl, s.transcribe.apiKey, t(trInfo.labelKey))
+      : []
 
   const loadModels = (kind: 'llm' | 'transcribe') => {
     const cfg = kind === 'llm' ? { info: llmInfo, ...s.llm } : { info: trInfo, ...s.transcribe }
@@ -171,6 +177,11 @@ export default function Settings() {
               ))}
             </select>
           </label>
+          {trWarnings.map((w) => (
+            <div key={w.key} className="info-box">
+              {t(w.key, w.params)}
+            </div>
+          ))}
           <p className="muted">{t(trInfo.privacyKey)}</p>
           <label className="field">
             <span>{t('settings.baseUrl')}</span>
@@ -275,6 +286,11 @@ export default function Settings() {
           ))}
         </select>
       </label>
+      {llmWarnings.map((w) => (
+        <div key={w.key} className="info-box">
+          {t(w.key, w.params)}
+        </div>
+      ))}
       <p className="muted">{t(llmInfo.privacyKey)}</p>
       <label className="field">
         <span>{t('settings.aiBaseUrl')}</span>

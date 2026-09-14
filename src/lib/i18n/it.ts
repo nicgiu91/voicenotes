@@ -192,6 +192,18 @@ export const it = {
   'settings.customModel': 'Altro (scrivi il nome del modello)',
   'settings.customModelField': 'Nome del modello',
   'settings.maxTokens': 'Max token',
+  'warn.keyLooksLikeUrl':
+    'Attenzione: nel campo della chiave c’è un indirizzo web, non una chiave. La chiave è una sequenza di lettere e numeri, e va nel campo qui sotto; l’indirizzo va nel campo “URL base”.',
+  'warn.keyHasSpaces':
+    'Attenzione: la chiave contiene spazi o un a capo. Di solito succede copiandola male: ricopiala per intero, senza righe in più.',
+  'warn.urlMismatch':
+    'Attenzione: hai scelto {service}, ma l’indirizzo punta altrove. Quel servizio risponde su {host}. Se non è voluto, riseleziona il servizio dal menu e l’indirizzo si sistema da solo.',
+  'warn.keyOtherService':
+    'Attenzione: questa sembra una chiave di {other}, ma il servizio scelto è {service}. Ogni servizio accetta solo le proprie.',
+  'warn.keyPrefix':
+    'Attenzione: questa chiave non sembra di {service}, le sue iniziano con “{prefix}”. Potrebbe essere la chiave di un altro servizio.',
+  'warn.keyTooShort':
+    'Attenzione: la chiave sembra incompleta, è più corta del solito. Controlla di averla copiata tutta.',
   'settings.mixedContent':
     'Attenzione: stai usando l’app in HTTPS con un endpoint http:// — il browser bloccherà la richiesta ("mixed content"). Soluzioni: esponi il server locale in HTTPS, oppure apri l’app in HTTP dal PC. I dettagli sono nel README del progetto.',
   'settings.saveSettings': 'Salva impostazioni',
