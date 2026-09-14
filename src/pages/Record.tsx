@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ChunkedRecorder, importAudioFile, pickMimeType } from '../lib/audio/recorder'
 import { formatDuration } from '../lib/format'
 import LevelMeter from '../components/LevelMeter'
@@ -96,6 +96,9 @@ export default function Record() {
             {t('record.import')}
           </button>
           <input ref={fileRef} type="file" accept="audio/*" hidden onChange={(e) => void onImport(e)} />
+          <Link to="/importa-testo">
+            <button className="btn-ghost">{t('record.importText')}</button>
+          </Link>
           <p className="muted">
             {t('record.format', { format: format || t('record.formatDefault') })}
           </p>

@@ -28,6 +28,25 @@ export const it = {
   'home.badgeRecovered': 'recuperata',
   'home.badgeTranscribed': 'trascritta',
 
+  'record.importText': 'Importa un testo già trascritto',
+
+  'importText.title': 'Testo già trascritto',
+  'importText.intro':
+    'Se hai già la trascrizione — per esempio dai Memo Vocali dell’iPhone, che trascrivono gratis — incollala qui: l’app la tratta come una nota normale, con riepiloghi, mappa mentale e domande, senza pagare la trascrizione.',
+  'importText.noteTitle': 'Titolo della nota',
+  'importText.titlePlaceholder': 'lasciato vuoto, lo ricavo dal testo',
+  'importText.text': 'Testo',
+  'importText.textPlaceholder': 'Incolla qui la trascrizione…',
+  'importText.fromFile': 'Carica da file (.txt, .md)',
+  'importText.fileError': 'Non riesco a leggere il file.',
+  'importText.words': '{n} parole',
+  'importText.create': 'Crea la nota',
+  'importText.creating': 'Creazione…',
+  'importText.error': 'Creazione non riuscita.',
+  'importText.hint':
+    'La nota non avrà audio né minuti cliccabili: c’è solo il testo. Tutto il resto funziona come sempre.',
+  'err.importTextEmpty': 'Il testo è vuoto: incolla qualcosa prima di creare la nota.',
+
   'record.title': 'Registra',
   'record.recording': 'Sto registrando…',
   'record.start': 'Avvia la registrazione',

@@ -30,6 +30,25 @@ export const en: Record<TKey, string> = {
   'home.badgeRecovered': 'recovered',
   'home.badgeTranscribed': 'transcribed',
 
+  'record.importText': 'Import an existing transcript',
+
+  'importText.title': 'Existing transcript',
+  'importText.intro':
+    'If you already have the transcript — from the iPhone Voice Memos app, for instance, which transcribes for free — paste it here: the app treats it as a normal note, with summaries, mind map and questions, without paying for transcription.',
+  'importText.noteTitle': 'Note title',
+  'importText.titlePlaceholder': 'leave empty and I take it from the text',
+  'importText.text': 'Text',
+  'importText.textPlaceholder': 'Paste the transcript here…',
+  'importText.fromFile': 'Load from file (.txt, .md)',
+  'importText.fileError': 'I cannot read that file.',
+  'importText.words': '{n} words',
+  'importText.create': 'Create the note',
+  'importText.creating': 'Creating…',
+  'importText.error': 'Could not create the note.',
+  'importText.hint':
+    'The note will have no audio and no clickable timestamps: only the text. Everything else works as usual.',
+  'err.importTextEmpty': 'The text is empty: paste something before creating the note.',
+
   'record.title': 'Record',
   'record.recording': 'Recording…',
   'record.start': 'Start recording',

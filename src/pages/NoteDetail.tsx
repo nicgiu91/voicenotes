@@ -163,6 +163,8 @@ export default function NoteDetail() {
   }
 
   const transcriptText = note.transcript?.text ?? ''
+  // nota nata da un testo incollato: non c'e' audio da riascoltare ne' da ritrascrivere
+  const textOnly = note.source === 'text'
 
   const generateSummaries = () =>
     runLLM('riepiloghi', async (llm) => {
@@ -243,13 +245,15 @@ export default function NoteDetail() {
         {note.status === 'recovered' && ` · ${t('note.recovered')}`}
       </p>
 
-      {audioError && <div className="info-box">{audioError}</div>}
+      {audioError && !textOnly && <div className="info-box">{audioError}</div>}
       {audioUrl && <audio ref={audioRef} src={audioUrl} controls preload="metadata" />}
 
       <div className="row" style={{ marginTop: 10 }}>
-        <button className="btn-ghost btn-small" onClick={() => void exportAudio()}>
-          {t('note.exportAudio')}
-        </button>
+        {!textOnly && (
+          <button className="btn-ghost btn-small" onClick={() => void exportAudio()}>
+            {t('note.exportAudio')}
+          </button>
+        )}
         <button className="btn-ghost btn-small" onClick={exportMarkdown}>
           {t('note.exportMd')}
         </button>
@@ -271,9 +275,11 @@ export default function NoteDetail() {
       {note.transcript ? (
         <>
           <TranscriptView transcript={note.transcript} onSeek={seekTo} />
-          <button className="btn-ghost btn-small" onClick={() => void doTranscribe()} disabled={transcribing}>
-            {transcribing ? t('note.transcribing') : t('note.retranscribe')}
-          </button>
+          {!textOnly && (
+            <button className="btn-ghost btn-small" onClick={() => void doTranscribe()} disabled={transcribing}>
+              {transcribing ? t('note.transcribing') : t('note.retranscribe')}
+            </button>
+          )}
         </>
       ) : (
         <button className="btn-primary" onClick={() => void doTranscribe()} disabled={transcribing}>

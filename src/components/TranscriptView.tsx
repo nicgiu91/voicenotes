@@ -14,8 +14,17 @@ export default function TranscriptView({ transcript, onSeek }: Props) {
   const { t } = useT()
   const groups = useMemo(() => groupSegments(transcript.segments), [transcript])
 
+  // testo importato o servizio senza tempi: si mostrano i paragrafi, senza minuti
   if (transcript.segments.length === 0) {
-    return <p className="muted">{t('transcript.empty')}</p>
+    const paragraphs = transcript.text.split(/\n\s*\n/).filter((p) => p.trim())
+    if (paragraphs.length === 0) return <p className="muted">{t('transcript.empty')}</p>
+    return (
+      <div className="transcript">
+        {paragraphs.map((p, i) => (
+          <p key={i}>{p.trim()}</p>
+        ))}
+      </div>
+    )
   }
 
   return (

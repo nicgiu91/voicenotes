@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { HashRouter, NavLink, Route, Routes } from 'react-router-dom'
 import Home from './pages/Home'
 import Record from './pages/Record'
+import ImportText from './pages/ImportText'
 import NoteDetail from './pages/NoteDetail'
 import Ask from './pages/Ask'
 import Settings from './pages/Settings'
@@ -79,6 +80,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/registra" element={<Record />} />
+          <Route path="/importa-testo" element={<ImportText />} />
           <Route path="/nota/:id" element={<NoteDetail />} />
           <Route path="/ask" element={<Ask />} />
           <Route path="/impostazioni" element={<Settings />} />

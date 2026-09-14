@@ -21,6 +21,8 @@ export interface Note {
   mimeType: string
   tags: string[]
   status: NoteStatus
+  /** 'text' = nota creata da una trascrizione incollata, senza audio */
+  source?: 'audio' | 'text'
   transcript?: Transcript
   /** id template -> riepilogo in Markdown */
   summaries?: Record<string, string>
