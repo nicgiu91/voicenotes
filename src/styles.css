@@ -469,6 +469,25 @@ audio {
 }
 
 /* link "Dove prendo la chiave?" sotto il campo API key */
+.live-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  margin: 6px 0 2px;
+  font-size: 0.92rem;
+}
+.live-box {
+  text-align: left;
+  margin-top: 14px;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+.live-box p {
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
 .transcript .speaker {
   display: inline-block;
   margin-right: 6px;

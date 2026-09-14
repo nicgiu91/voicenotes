@@ -59,6 +59,13 @@ export const en: Record<TKey, string> = {
   'record.hintIdle':
     'Tap to start. Keep the screen on while recording: the app tries to prevent locking, but on iPhone it is best not to lock the screen.',
   'record.hintRecording': 'The recording is saved every 30 seconds, so a crash never loses your audio.',
+  'record.live': 'Transcribe while I record',
+  'record.liveHint':
+    'The text appears as you speak, and when you stop the note is already transcribed. It costs about the same as a normal transcription, slightly more because of the cuts. If a part comes out wrong, just use “Transcribe again” on the note.',
+  'record.liveLocal':
+    'Live transcription needs an online service: Settings is set to “On this device”, which is too slow to keep up.',
+  'record.liveTitle': 'Live transcript',
+  'record.liveWaiting': 'Listening… the first chunk arrives after about half a minute of speech.',
   'record.import': 'Import audio file',
   'record.format': 'Recording format: {format}',
   'record.formatDefault': 'browser default',

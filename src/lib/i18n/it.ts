@@ -58,6 +58,13 @@ export const it = {
     'Tocca per iniziare. Tieni lo schermo acceso durante la registrazione: l’app prova a impedire il blocco, ma su iPhone conviene non bloccare lo schermo.',
   'record.hintRecording':
     'La registrazione viene salvata ogni 30 secondi: anche in caso di crash non perdi nulla.',
+  'record.live': 'Trascrivi mentre registro',
+  'record.liveHint':
+    'Il testo compare man mano, e a fine registrazione la nota è già trascritta. Costa come una trascrizione normale, un po’ di più per via dei tagli. Se una parte non viene, basta usare “Ritrascrivi” sulla nota.',
+  'record.liveLocal':
+    'La trascrizione in diretta richiede un servizio online: in Impostazioni è scelto “Sul dispositivo”, che è troppo lento per stare al passo.',
+  'record.liveTitle': 'Trascrizione in diretta',
+  'record.liveWaiting': 'In ascolto… il primo pezzo di testo arriva dopo circa mezzo minuto di parlato.',
   'record.import': 'Importa file audio',
   'record.format': 'Formato registrazione: {format}',
   'record.formatDefault': 'predefinito del browser',

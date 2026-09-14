@@ -69,6 +69,18 @@ Whisper, ma con le voci separate e i tempi. Chi apre un account nuovo riceve $20
 Va bene qualunque endpoint OpenAI-compatible: scegli "Il tuo server", scrivi l'indirizzo e
 seleziona (o scrivi) il modello.
 
+### Trascrizione in diretta
+
+Nella pagina Registra c'è l'interruttore **"Trascrivi mentre registro"**: il testo compare
+man mano e a fine registrazione la nota è già trascritta, senza un secondo passaggio da
+pagare. Ogni mezzo minuto l'app prende il pezzo di audio non ancora trascritto, lo taglia
+nel punto più silenzioso (per non spezzare una parola a metà) e lo manda al servizio.
+
+Costa come una trascrizione normale, appena di più per via dei tagli. Richiede un servizio
+online: con "Sul dispositivo" l'interruttore resta spento, perché Whisper nel browser è più
+lento del parlato. Se un pezzo viene male, "Ritrascrivi" sulla nota rifà tutto in un colpo
+solo sull'audio completo.
+
 ## Configurare l'AI
 
 Impostazioni → Intelligenza artificiale. Scegli il servizio e l'app riempie indirizzo e

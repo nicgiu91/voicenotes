@@ -81,6 +81,18 @@ get $200 of credit.
 Any OpenAI-compatible endpoint works: choose "Your own server", type the address, and pick or
 type the model.
 
+### Live transcription
+
+The Record page has a **"Transcribe while I record"** switch: the text appears as you speak
+and when you stop the note is already transcribed, with no second pass to pay for. Every
+half minute the app takes the audio not yet transcribed, cuts it at the quietest point (so a
+word is not split in half) and sends it to the service.
+
+It costs about the same as a normal transcription, marginally more because of the cuts. It
+needs an online service: with "On this device" the switch stays off, because Whisper in the
+browser is slower than speech. If a chunk comes out badly, "Transcribe again" redoes the
+whole thing in one pass over the complete audio.
+
 ## Configuring the AI
 
 Settings → Artificial intelligence. Pick a service and the app fills in its address and its
