@@ -157,11 +157,11 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     baseUrl: 'https://api.deepseek.com/v1',
     keyUrl: 'https://platform.deepseek.com/api_keys',
     keyRequired: true,
-    fastModel: 'deepseek-chat',
+    fastModel: 'deepseek-flash',
     privacyKey: 'privacy.deepseek',
     models: [
-      { id: 'deepseek-chat', labelKey: 'models.deepseekChat' },
-      { id: 'deepseek-reasoner', labelKey: 'models.deepseekReasoner' },
+      { id: 'deepseek-flash', labelKey: 'models.deepseekFlash' },
+      { id: 'deepseek-v4-pro', labelKey: 'models.deepseekPro' },
     ],
   },
   {
@@ -307,6 +307,14 @@ export function migrateSettings(saved: SettingsData): SettingsData {
   if (llm.provider === 'openai' && !llm.baseUrl.includes('api.openai.com')) llm.provider = 'custom'
   // impostazioni salvate prima del modello leggero: si parte da quello del servizio
   if (!llm.fastModel) llm.fastModel = llmProvider(llm.provider).fastModel ?? llm.model
+  // DeepSeek ha ritirato questi nomi nel 2026: chi li aveva salvati riceverebbe un errore
+  const RITIRATI = ['deepseek-chat', 'deepseek-reasoner', 'deepseek-v4-flash']
+  if (llm.provider === 'deepseek') {
+    if (RITIRATI.includes(llm.model)) llm.model = 'deepseek-flash'
+    if (RITIRATI.includes(llm.fastModel)) llm.fastModel = 'deepseek-flash'
+  }
+  // il vecchio tetto di 4096 tagliava a meta' le risposte lunghe (diarizzazione)
+  if (llm.maxTokens === 4096) llm.maxTokens = 16000
   const transcribe = { ...saved.transcribe }
   if (!TRANSCRIBE_PROVIDERS.some((p) => p.id === transcribe.provider)) {
     const match = TRANSCRIBE_PROVIDERS.find(

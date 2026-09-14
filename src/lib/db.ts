@@ -47,7 +47,7 @@ export const defaultSettings: SettingsData = {
     apiKey: '',
     model: 'claude-sonnet-5',
     fastModel: 'claude-haiku-4-5',
-    maxTokens: 4096,
+    maxTokens: 16000,
   },
 }
 

@@ -155,8 +155,8 @@ export const en: Record<TKey, string> = {
   'models.openrouterAuto': 'Automatic — OpenRouter picks the model',
   'models.mistralSmall': 'Mistral Small — cheap',
   'models.mistralLarge': 'Mistral Large — more accurate, costs more',
-  'models.deepseekChat': 'DeepSeek Chat — very cheap',
-  'models.deepseekReasoner': 'DeepSeek Reasoner — reasons more, slower',
+  'models.deepseekFlash': 'DeepSeek Flash — very cheap, the common choice',
+  'models.deepseekPro': 'DeepSeek V4 Pro — more accurate, costs more',
 
   'tmodels.whisper1': 'Whisper — the standard, fine for everything',
   'tmodels.gpt4oMiniTranscribe': 'GPT-4o mini transcribe — more accurate, no timestamps',
@@ -206,7 +206,7 @@ export const en: Record<TKey, string> = {
     'API keys stay on this device only and are never sent anywhere else: the browser calls the providers you configure here directly.',
 
   'models.opus5': 'Claude Opus 5 — top quality, high token cost ($5/$25 per million tokens)',
-  'models.sonnet5': 'Claude Sonnet 5 — balanced, recommended ($3/$15 per million tokens)',
+  'models.sonnet5': 'Claude Sonnet 5 — balanced, recommended ($2/$10 per million tokens)',
   'models.haiku45': 'Claude Haiku 4.5 — fast and cheap ($1/$5 per million tokens)',
   'models.fable5': 'Claude Fable 5 — most capable, very expensive ($10/$50 per million tokens)',
   'models.opus48': 'Claude Opus 4.8 — previous generation ($5/$25 per million tokens)',

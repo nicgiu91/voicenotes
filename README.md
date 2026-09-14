@@ -98,7 +98,7 @@ Each model in the dropdown states its speed/quality trade-off. Prices are shown 
 | Model | Input / output per million tokens | Good for |
 |---|---|---|
 | Claude Haiku 4.5 | $1 / $5 | fast, cheap, everyday notes |
-| Claude Sonnet 5 | $3 / $15 | balanced — the recommended default |
+| Claude Sonnet 5 | $2 / $10 | balanced — the recommended default |
 | Claude Opus 5 | $5 / $25 | top quality on demanding material |
 | Claude Opus 4.8 | $5 / $25 | previous generation |
 | Claude Fable 5 | $10 / $50 | most capable, and priced accordingly |

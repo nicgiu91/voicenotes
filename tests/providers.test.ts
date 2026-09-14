@@ -199,6 +199,25 @@ describe('impostazioni salvate prima dei nuovi servizi', () => {
     expect(s.llm.fastModel).toBe('qwen2.5')
   })
 
+  test('i modelli DeepSeek ritirati vengono sostituiti con quello attuale', () => {
+    const s = saved({ provider: 'deepseek', model: 'deepseek-chat', fastModel: 'deepseek-reasoner' })
+    expect(s.llm.model).toBe('deepseek-flash')
+    expect(s.llm.fastModel).toBe('deepseek-flash')
+  })
+
+  test('i modelli ritirati di DeepSeek non toccano gli altri servizi', () => {
+    expect(saved({ provider: 'anthropic', model: 'claude-sonnet-5' }).llm.model).toBe('claude-sonnet-5')
+  })
+
+  test('il vecchio tetto di 4096 token viene alzato', () => {
+    expect(saved({ maxTokens: 4096 }).llm.maxTokens).toBe(16000)
+  })
+
+  test('un tetto scelto a mano non viene toccato', () => {
+    expect(saved({ maxTokens: 2000 }).llm.maxTokens).toBe(2000)
+    expect(saved({ maxTokens: 32000 }).llm.maxTokens).toBe(32000)
+  })
+
   test('la trascrizione senza servizio lo deduce dall’URL salvato', () => {
     expect(
       saved({}, { provider: undefined as never, baseUrl: 'https://api.openai.com/v1' }).transcribe

@@ -87,7 +87,7 @@ Claude:
 | Modello | Costo per milione di token (input/output) | Adatto a |
 |---|---|---|
 | Claude Haiku 4.5 | $1 / $5 | veloce ed economico, uso quotidiano |
-| Claude Sonnet 5 | $3 / $15 | equilibrato — la scelta consigliata |
+| Claude Sonnet 5 | $2 / $10 | equilibrato — la scelta consigliata |
 | Claude Opus 5 | $5 / $25 | massima qualità su materiale impegnativo |
 | Claude Opus 4.8 | $5 / $25 | generazione precedente |
 | Claude Fable 5 | $10 / $50 | il più capace, e si paga |
