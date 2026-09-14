@@ -64,7 +64,19 @@ provider issues API keys.
 | Service | Models offered | Notes |
 |---|---|---|
 | OpenAI | `whisper-1`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` | the GPT-4o models are more accurate but return no timestamps |
+| Deepgram | `nova-3`, `nova-2` | **really separates speakers**, word-level timings |
 | Your own server or another service | anything you type | whisper.cpp, faster-whisper, Speaches… see CORS below |
+
+**Who is speaking.** Only Deepgram separates voices for real: the audio goes in a single
+request (split into pieces, "speaker 1" would not be the same person across them) and the
+transcript shows labelled turns. With the other services the "Who is speaking?" button
+remains, which asks the AI model to infer it from the text: decent for two people, much
+less so for three or more.
+
+**One thing to know about Deepgram's price.** The advertised rate ($0.0043/min) applies if
+you let them train on your audio. The app always opts out, so the real price is about twice
+that ($0.0086/min): more than Whisper, but with separated speakers and timings. New accounts
+get $200 of credit.
 
 Any OpenAI-compatible endpoint works: choose "Your own server", type the address, and pick or
 type the model.
@@ -132,6 +144,7 @@ choice is not only about price. In short:
 | Your own server (Ollama, LM Studio, whisper.cpp) | the text never leaves your network |
 | On-device transcription | the audio never leaves the phone |
 | Anthropic, OpenAI | no, not on data sent through the API |
+| Deepgram | **yes at list price**; the app always opts out, which doubles the rate |
 | xAI (Grok) | no; requests stay on their servers for 30 days for abuse checks |
 | Mistral AI | no; European provider, data in the European Union |
 | Google (Gemini) | **yes on the free tier**, and human reviewers may read it; no with billing enabled |

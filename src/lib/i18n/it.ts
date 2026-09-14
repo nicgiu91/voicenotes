@@ -175,6 +175,12 @@ export const it = {
   'provider.custom': 'Il tuo server o un altro servizio (OpenAI-compatible)',
 
   'tprovider.openai': 'OpenAI',
+  'tprovider.deepgram': 'Deepgram (separa le voci)',
+  'tmodels.nova3': 'Nova 3 — l’ultimo, consigliato',
+  'tmodels.nova2': 'Nova 2 — generazione precedente',
+  'tprivacy.deepgram':
+    'Privacy: al prezzo di listino Deepgram usa gli audio per addestrare i suoi modelli. L’app chiede sempre l’esclusione, che però raddoppia la tariffa (circa $0,0086 al minuto invece di $0,0043).',
+  'transcript.speaker': 'Voce {n}',
   'tprovider.custom': 'Il tuo server o un altro servizio (OpenAI-compatible)',
   'settings.customModel': 'Altro (scrivi il nome del modello)',
   'settings.customModelField': 'Nome del modello',

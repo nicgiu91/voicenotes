@@ -469,6 +469,17 @@ audio {
 }
 
 /* link "Dove prendo la chiave?" sotto il campo API key */
+.transcript .speaker {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: rgba(125, 170, 255, 0.18);
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .note-snippet {
   margin-top: 8px;
   font-size: 0.86rem;

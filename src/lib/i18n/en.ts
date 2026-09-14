@@ -162,6 +162,12 @@ export const en: Record<TKey, string> = {
   'provider.custom': 'Your own server or another service (OpenAI-compatible)',
 
   'tprovider.openai': 'OpenAI',
+  'tprovider.deepgram': 'Deepgram (separates speakers)',
+  'tmodels.nova3': 'Nova 3 — the latest, recommended',
+  'tmodels.nova2': 'Nova 2 — previous generation',
+  'tprivacy.deepgram':
+    'Privacy: at list price Deepgram uses your audio to train its models. The app always opts out, which doubles the rate (about $0.0086 per minute instead of $0.0043).',
+  'transcript.speaker': 'Speaker {n}',
   'tprovider.custom': 'Your own server or another service (OpenAI-compatible)',
 
   'models.gpt4oMini': 'GPT-4o mini — fast and cheap',

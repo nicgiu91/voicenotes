@@ -35,7 +35,9 @@ export function groupSegments(segments: TranscriptSegment[]): TranscriptSegment[
   for (const seg of segments) {
     const prev = current[current.length - 1]
     const longPause = prev !== undefined && seg.start - prev.end > 2.5
-    if (current.length > 0 && (words > 40 || longPause)) {
+    // cambio di interlocutore: il paragrafo si chiude comunque
+    const newSpeaker = prev !== undefined && prev.speaker !== seg.speaker
+    if (current.length > 0 && (words > 40 || longPause || newSpeaker)) {
       groups.push(current)
       current = []
       words = 0

@@ -24,7 +24,7 @@ export function modelLabel(m: ModelOption): string {
 }
 
 /** Formato delle richieste: Anthropic ha il suo, tutti gli altri sono OpenAI-compatible. */
-export type ApiKind = 'anthropic' | 'openai'
+export type ApiKind = 'anthropic' | 'openai' | 'deepgram'
 
 export interface ProviderInfo<Id extends string> {
   id: Id
@@ -194,6 +194,19 @@ export const TRANSCRIBE_PROVIDERS: TranscribeProviderInfo[] = [
       { id: 'whisper-1', labelKey: 'tmodels.whisper1' },
       { id: 'gpt-4o-mini-transcribe', labelKey: 'tmodels.gpt4oMiniTranscribe' },
       { id: 'gpt-4o-transcribe', labelKey: 'tmodels.gpt4oTranscribe' },
+    ],
+  },
+  {
+    id: 'deepgram',
+    labelKey: 'tprovider.deepgram',
+    api: 'deepgram',
+    baseUrl: 'https://api.deepgram.com/v1',
+    keyUrl: 'https://console.deepgram.com/signup',
+    keyRequired: true,
+    privacyKey: 'tprivacy.deepgram',
+    models: [
+      { id: 'nova-3', labelKey: 'tmodels.nova3' },
+      { id: 'nova-2', labelKey: 'tmodels.nova2' },
     ],
   },
   {

@@ -2,6 +2,7 @@ import { assembleAudio, audioExtension } from '../audio/assemble'
 import { splitForTranscription } from '../audio/wav'
 import { db } from '../db'
 import { mergeParts, type TranscriptPart } from './merge'
+import { transcribeProvider } from '../providers'
 import type { TranscribeSettings, Transcript } from '../types'
 import { t } from '../i18n'
 
@@ -93,6 +94,13 @@ export async function transcribeNote(
     const result = await transcribeLocally(audio, settings, note.durationSec, onProgress)
     merged = { text: result.text, segments: result.segments }
     language = result.language
+  } else if (transcribeProvider(settings.provider).api === 'deepgram') {
+    // audio intero in una sola richiesta: vedi il commento in deepgram.ts
+    onProgress(t('transcribe.inProgress'))
+    const { transcribeWithDeepgram } = await import('./deepgram')
+    const part = await transcribeWithDeepgram(audio, settings, note.durationSec)
+    merged = { text: part.text, segments: part.segments }
+    language = part.language
   } else {
     const pieces = await splitForTranscription(audio, note.durationSec)
     const parts: TranscriptPart[] = []

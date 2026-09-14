@@ -34,6 +34,9 @@ export default function TranscriptView({ transcript, onSeek }: Props) {
           <span className="ts" onClick={() => onSeek(group[0].start)} title={t('transcript.seek')}>
             {formatTimestamp(group[0].start)}
           </span>
+          {group[0].speaker !== undefined && (
+            <span className="speaker">{t('transcript.speaker', { n: group[0].speaker + 1 })}</span>
+          )}
           {group.map((s) => s.text).join(' ')}
         </p>
       ))}

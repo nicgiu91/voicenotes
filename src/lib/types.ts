@@ -2,6 +2,8 @@ export interface TranscriptSegment {
   start: number
   end: number
   text: string
+  /** indice di chi parla (0, 1, 2...), solo dai servizi che separano le voci */
+  speaker?: number
 }
 
 export interface Transcript {
@@ -39,7 +41,7 @@ export interface AudioChunk {
 export type TranscribeMode = 'api' | 'local'
 export type LocalWhisperSize = 'tiny' | 'base' | 'small'
 /** servizi di trascrizione proposti; 'custom' = qualunque endpoint OpenAI-compatible */
-export type TranscribeProvider = 'openai' | 'custom'
+export type TranscribeProvider = 'openai' | 'deepgram' | 'custom'
 
 export interface TranscribeSettings {
   /** 'api' = servizio OpenAI-compatible; 'local' = Whisper nel browser (Transformers.js) */
