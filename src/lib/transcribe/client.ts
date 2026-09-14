@@ -5,6 +5,7 @@ import { mergeParts, type TranscriptPart } from './merge'
 import { transcribeProvider } from '../providers'
 import type { TranscribeSettings, Transcript } from '../types'
 import { t } from '../i18n'
+import { describeApiError, describeNetworkError } from '../apiError'
 
 interface VerboseJsonResponse {
   text?: string
@@ -37,13 +38,18 @@ export async function transcribeBlob(
     form.append('response_format', format)
     const headers: Record<string, string> = {}
     if (settings.apiKey) headers.Authorization = `Bearer ${settings.apiKey}`
-    const res = await fetch(apiUrl(settings.baseUrl), { method: 'POST', headers, body: form })
+    const res = await fetch(apiUrl(settings.baseUrl), { method: 'POST', headers, body: form }).catch(
+      (e: unknown) => {
+        if (e instanceof TypeError) throw new Error(describeNetworkError('transcribe'))
+        throw e
+      },
+    )
     if (!res.ok) {
       const body = await res.text().catch(() => '')
-      throw Object.assign(
-        new Error(t('err.transcribeFailed', { status: res.status, body: body.slice(0, 300) })),
-        { status: res.status },
-      )
+      throw Object.assign(new Error(describeApiError(res.status, body, 'transcribe')), {
+        status: res.status,
+        body,
+      })
     }
     return (await res.json()) as VerboseJsonResponse
   }

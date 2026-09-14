@@ -28,8 +28,10 @@ function foldWithMap(s: string): { folded: string; map: number[] } {
   let i = 0
   for (const ch of s) {
     const base = ch.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() || ch.toLowerCase()
-    for (const c of base) {
-      folded += c
+    // si avanza per unita' della stringa, non per caratteri "logici": un emoji
+    // ne occupa due, e contarlo una volta sola sfasava tutte le posizioni dopo
+    for (let k = 0; k < base.length; k++) {
+      folded += base[k]
       map.push(i)
     }
     i += ch.length

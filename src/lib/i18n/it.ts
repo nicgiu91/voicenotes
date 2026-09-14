@@ -279,6 +279,27 @@ export const it = {
   'err.noteNotFound': 'Nota non trovata',
   'err.noAudio': 'Nessun audio salvato per questa nota',
   'err.transcribeConfigure': 'Configura l’endpoint di trascrizione nelle Impostazioni.',
+  'err.apiKey':
+    'La chiave API non è valida o non ha i permessi. Controlla di averla incollata per intero in Impostazioni, e che sia quella del servizio giusto.',
+  'err.apiRate':
+    'Hai fatto troppe richieste di seguito: il servizio ti ha messo in pausa. Aspetta un minuto e riprova.',
+  'err.apiCredit':
+    'Il credito sul servizio è esaurito, oppure non hai ancora attivato il pagamento. Controlla il tuo account sul loro sito.',
+  'err.apiModel':
+    'Il modello scelto non esiste su questo servizio: potrebbe essere stato ritirato. Prova “Aggiorna l’elenco dei modelli” in Impostazioni e scegline un altro.',
+  'err.apiTooBig':
+    'L’audio è troppo grande per il servizio. Dividi la registrazione, oppure usa un servizio che accetta file più lunghi.',
+  'err.apiTooLong':
+    'Il testo inviato è troppo lungo per questo modello. Prova un modello che regge testi più lunghi, o dividi la nota.',
+  'err.apiServer':
+    'Il servizio ha un problema suo in questo momento. Non dipende da te: riprova fra qualche minuto.',
+  'err.apiLlmGeneric': 'Il servizio AI ha rifiutato la richiesta.',
+  'err.apiTranscribeGeneric': 'Il servizio di trascrizione ha rifiutato la richiesta.',
+  'err.apiDetail': '(dettaglio tecnico, HTTP {status}: {detail})',
+  'err.netLlm':
+    'Non riesco a contattare il servizio AI. Controlla la connessione e l’indirizzo in Impostazioni; se è un server tuo, verifica che sia acceso e raggiungibile.',
+  'err.netTranscribe':
+    'Non riesco a contattare il servizio di trascrizione. Controlla la connessione e l’indirizzo in Impostazioni; se è un server tuo, verifica che sia acceso e raggiungibile.',
   'err.transcribeFailed': 'Trascrizione fallita (HTTP {status}): {body}',
   'err.transcribeGeneric': 'Errore di trascrizione',
   'err.localFailed': 'Trascrizione locale fallita: {message}',

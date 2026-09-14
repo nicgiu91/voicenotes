@@ -1,4 +1,5 @@
 import { t } from '../i18n'
+import { describeApiError } from '../apiError'
 import type { TranscribeSettings, TranscriptSegment } from '../types'
 import type { TranscriptPart } from './merge'
 
@@ -95,10 +96,9 @@ export async function transcribeWithDeepgram(
   })
   if (!res.ok) {
     const body = await res.text().catch(() => '')
-    throw Object.assign(
-      new Error(t('err.transcribeFailed', { status: res.status, body: body.slice(0, 300) })),
-      { status: res.status },
-    )
+    throw Object.assign(new Error(describeApiError(res.status, body, 'transcribe')), {
+      status: res.status,
+    })
   }
 
   const data = (await res.json()) as DeepgramResponse

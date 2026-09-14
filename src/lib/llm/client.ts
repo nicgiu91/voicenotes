@@ -1,6 +1,7 @@
 import type { LlmSettings } from '../types'
 import { llmProvider } from '../providers'
 import { t } from '../i18n'
+import { describeApiError, describeNetworkError } from '../apiError'
 
 export interface LlmMessage {
   role: 'user' | 'assistant'
@@ -22,8 +23,14 @@ export function fastLlm(s: LlmSettings): LlmSettings {
 
 export async function chatLLM(system: string, messages: LlmMessage[], s: LlmSettings): Promise<string> {
   if (!s.baseUrl) throw new Error(t('err.llmEndpoint'))
-  if (llmProvider(s.provider).api === 'anthropic') return chatAnthropic(system, messages, s)
-  return chatOpenAI(system, messages, s)
+  try {
+    if (llmProvider(s.provider).api === 'anthropic') return await chatAnthropic(system, messages, s)
+    return await chatOpenAI(system, messages, s)
+  } catch (e) {
+    // fetch fallito: nessuno stato HTTP da spiegare, e' la rete o l'indirizzo
+    if (e instanceof TypeError) throw new Error(describeNetworkError('llm'))
+    throw e
+  }
 }
 
 async function chatAnthropic(system: string, messages: LlmMessage[], s: LlmSettings): Promise<string> {
@@ -46,7 +53,7 @@ async function chatAnthropic(system: string, messages: LlmMessage[], s: LlmSetti
   })
   if (!res.ok) {
     const body = await res.text().catch(() => '')
-    throw new Error(t('err.llmUnreachable', { status: res.status, body: body.slice(0, 300) }))
+    throw new Error(describeApiError(res.status, body, 'llm'))
   }
   const data = (await res.json()) as { content?: { type: string; text?: string }[] }
   const text = (data.content ?? [])
@@ -81,12 +88,12 @@ async function chatOpenAI(system: string, messages: LlmMessage[], s: LlmSettings
     if (res.status === 400 && body.includes('max_completion_tokens')) {
       res = await send('max_completion_tokens')
     } else {
-      throw new Error(t('err.llmUnreachable', { status: res.status, body: body.slice(0, 300) }))
+      throw new Error(describeApiError(res.status, body, 'llm'))
     }
   }
   if (!res.ok) {
     const body = await res.text().catch(() => '')
-    throw new Error(t('err.llmUnreachable', { status: res.status, body: body.slice(0, 300) }))
+    throw new Error(describeApiError(res.status, body, 'llm'))
   }
   const data = (await res.json()) as { choices?: { message?: { content?: string } }[] }
   const text = (data.choices?.[0]?.message?.content ?? '').trim()

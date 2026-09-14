@@ -292,6 +292,27 @@ export const en: Record<TKey, string> = {
   'err.noteNotFound': 'Note not found',
   'err.noAudio': 'No audio saved for this note',
   'err.transcribeConfigure': 'Configure the transcription endpoint in Settings.',
+  'err.apiKey':
+    'The API key is not valid, or lacks permissions. Check you pasted it in full in Settings, and that it belongs to the right service.',
+  'err.apiRate':
+    'Too many requests in a row: the service paused you. Wait a minute and try again.',
+  'err.apiCredit':
+    'Your credit on the service has run out, or billing is not enabled yet. Check your account on their site.',
+  'err.apiModel':
+    'The chosen model does not exist on this service: it may have been retired. Try “Refresh the model list” in Settings and pick another one.',
+  'err.apiTooBig':
+    'The audio is too large for the service. Split the recording, or use a service that accepts longer files.',
+  'err.apiTooLong':
+    'The text sent is too long for this model. Try a model that handles longer texts, or split the note.',
+  'err.apiServer':
+    'The service is having a problem of its own right now. It is not your fault: try again in a few minutes.',
+  'err.apiLlmGeneric': 'The AI service refused the request.',
+  'err.apiTranscribeGeneric': 'The transcription service refused the request.',
+  'err.apiDetail': '(technical detail, HTTP {status}: {detail})',
+  'err.netLlm':
+    'I cannot reach the AI service. Check your connection and the address in Settings; if it is your own server, make sure it is running and reachable.',
+  'err.netTranscribe':
+    'I cannot reach the transcription service. Check your connection and the address in Settings; if it is your own server, make sure it is running and reachable.',
   'err.transcribeFailed': 'Transcription failed (HTTP {status}): {body}',
   'err.transcribeGeneric': 'Transcription error',
   'err.localFailed': 'On-device transcription failed: {message}',
