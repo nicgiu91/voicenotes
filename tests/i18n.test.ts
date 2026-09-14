@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it as test } from 'vitest'
 import { it as dictIt } from '../src/lib/i18n/it'
 import { en } from '../src/lib/i18n/en'
@@ -49,5 +50,28 @@ describe('t()', () => {
   test('setLang aggiorna la lingua corrente', () => {
     setLang('en')
     expect(getLang()).toBe('en')
+  })
+})
+
+describe('integrità dei file di traduzione', () => {
+  // Una chiave scritta due volte in un oggetto TypeScript non dà errore:
+  // la seconda vince in silenzio. Qui si legge il sorgente per accorgersene.
+  const chiaviDoppie = (file: string): string[] => {
+    const src = readFileSync(new URL(`../src/lib/i18n/${file}`, import.meta.url), 'utf-8')
+    const viste = new Set<string>()
+    const doppie: string[] = []
+    for (const m of src.matchAll(/^ {2}'([a-zA-Z][\w.]*)':/gm)) {
+      if (viste.has(m[1])) doppie.push(m[1])
+      viste.add(m[1])
+    }
+    return doppie
+  }
+
+  test('nessuna chiave ripetuta in italiano', () => {
+    expect(chiaviDoppie('it.ts')).toEqual([])
+  })
+
+  test('nessuna chiave ripetuta in inglese', () => {
+    expect(chiaviDoppie('en.ts')).toEqual([])
   })
 })

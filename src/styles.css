@@ -469,6 +469,19 @@ audio {
 }
 
 /* link "Dove prendo la chiave?" sotto il campo API key */
+.note-snippet {
+  margin-top: 8px;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  opacity: 0.78;
+}
+.note-snippet mark {
+  background: rgba(255, 214, 102, 0.28);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
 a.key-link {
   display: inline-block;
   margin: -6px 0 14px;

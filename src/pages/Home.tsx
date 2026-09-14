@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { db } from '../lib/db'
 import type { Note } from '../lib/types'
 import NoteCard from '../components/NoteCard'
+import { searchNotes } from '../lib/search'
 import { useT } from '../lib/i18n'
 
 export default function Home() {
@@ -30,15 +31,11 @@ export default function Home() {
   }, [notes])
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return notes.filter((n) => {
-      if (tagFilter && !n.tags.includes(tagFilter)) return false
-      if (!q) return true
-      if (n.title.toLowerCase().includes(q)) return true
-      if (n.transcript?.text.toLowerCase().includes(q)) return true
-      return false
-    })
+    const byTag = tagFilter ? notes.filter((n) => n.tags.includes(tagFilter)) : notes
+    return searchNotes(byTag, query)
   }, [notes, query, tagFilter])
+
+  const searching = query.trim().length > 0
 
   return (
     <div>
@@ -75,8 +72,17 @@ export default function Home() {
           </Link>
         </div>
       )}
-      {filtered.map((n) => (
-        <NoteCard key={n.id} note={n} />
+      {searching && (
+        <p className="muted">
+          {filtered.length === 0
+            ? t('home.noResults')
+            : filtered.length === 1
+              ? t('home.resultsOne')
+              : t('home.results', { n: String(filtered.length) })}
+        </p>
+      )}
+      {filtered.map((m) => (
+        <NoteCard key={m.note.id} note={m.note} snippet={searching ? m.snippet : undefined} />
       ))}
       {loaded && notes.length > 0 && filtered.length === 0 && (
         <p className="muted">{t('home.noResults')}</p>

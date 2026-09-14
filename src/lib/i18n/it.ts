@@ -21,10 +21,13 @@ export const it = {
   'privacy.accept': 'Ho capito',
 
   'home.title': 'Le tue note',
-  'home.search': 'Cerca nei titoli e nelle trascrizioni…',
+  'home.search': 'Cerca nei titoli, nelle trascrizioni e nei riepiloghi…',
+  'home.results': '{n} note trovate',
+  'home.resultsOne': '1 nota trovata',
+  'home.noResults': 'Nessuna nota contiene tutte le parole che hai scritto.',
+  'home.badgeText': 'testo',
   'home.empty': 'Nessuna nota ancora.',
   'home.firstRecording': 'Fai la prima registrazione',
-  'home.noResults': 'Nessun risultato per questa ricerca.',
   'home.badgeRecovered': 'recuperata',
   'home.badgeTranscribed': 'trascritta',
 

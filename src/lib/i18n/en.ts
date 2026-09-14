@@ -23,10 +23,13 @@ export const en: Record<TKey, string> = {
   'privacy.accept': 'Got it',
 
   'home.title': 'Your notes',
-  'home.search': 'Search titles and transcripts…',
+  'home.search': 'Search titles, transcripts and summaries…',
+  'home.results': '{n} notes found',
+  'home.resultsOne': '1 note found',
+  'home.noResults': 'No note contains all the words you typed.',
+  'home.badgeText': 'text',
   'home.empty': 'No notes yet.',
   'home.firstRecording': 'Make your first recording',
-  'home.noResults': 'No results for this search.',
   'home.badgeRecovered': 'recovered',
   'home.badgeTranscribed': 'transcribed',
 
