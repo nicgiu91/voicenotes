@@ -22,6 +22,21 @@ describe('errori dei servizi tradotti in italiano', () => {
     expect(describeApiError(400, 'insufficient_quota', 'llm')).toContain('credito')
   })
 
+  // caso vero incontrato con OpenAI: risponde 429 anche quando il credito e'
+  // finito, e dire "aspetta un minuto" manda l'utente fuori strada
+  test('429 per credito finito parla di credito, non di attesa', () => {
+    const vero =
+      '{ "error": { "message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/." } }'
+    const m = describeApiError(429, vero, 'transcribe')
+    expect(m).toContain('credito')
+    expect(m).not.toContain('Aspetta un minuto')
+  })
+
+  test('429 per troppe richieste resta un invito ad aspettare', () => {
+    const m = describeApiError(429, 'Rate limit reached for requests', 'llm')
+    expect(m).toContain('Aspetta')
+  })
+
   test('modello inesistente rimanda ad aggiornare l’elenco', () => {
     expect(describeApiError(404, '', 'llm')).toContain('elenco dei modelli')
     expect(describeApiError(400, 'The model `pippo` was not found', 'llm')).toContain(

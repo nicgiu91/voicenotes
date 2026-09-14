@@ -284,7 +284,7 @@ export const it = {
   'err.apiRate':
     'Hai fatto troppe richieste di seguito: il servizio ti ha messo in pausa. Aspetta un minuto e riprova.',
   'err.apiCredit':
-    'Il credito sul servizio è esaurito, oppure non hai ancora attivato il pagamento. Controlla il tuo account sul loro sito.',
+    'La chiave funziona, ma su quell’account non c’è credito. Ogni servizio ha il suo portafoglio separato: ricaricalo sul loro sito, oppure usa un altro servizio. Aspettare non serve.',
   'err.apiModel':
     'Il modello scelto non esiste su questo servizio: potrebbe essere stato ritirato. Prova “Aggiorna l’elenco dei modelli” in Impostazioni e scegline un altro.',
   'err.apiTooBig':

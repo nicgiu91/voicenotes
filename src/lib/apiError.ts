@@ -14,13 +14,23 @@ export function describeApiError(status: number, body: string, kind: ApiErrorKin
   const low = body.toLowerCase()
   const dettaglio = body.trim().replace(/\s+/g, ' ').slice(0, DETAIL_MAX)
 
+  // OpenAI risponde 429 sia per "troppe richieste" sia per "credito finito":
+  // lo stato da solo non basta, bisogna guardare cosa dice la risposta
+  const parlaDiCredito =
+    low.includes('credit') ||
+    low.includes('quota') ||
+    low.includes('billing') ||
+    low.includes('payment') ||
+    low.includes('insufficient')
+  const parlaDiFrequenza = low.includes('rate limit') || low.includes('too many requests')
+
   let spiegazione: string
   if (status === 401 || status === 403) {
     spiegazione = t('err.apiKey')
+  } else if (status === 402 || (parlaDiCredito && !parlaDiFrequenza)) {
+    spiegazione = t('err.apiCredit')
   } else if (status === 429) {
     spiegazione = t('err.apiRate')
-  } else if (status === 402 || low.includes('insufficient') || low.includes('credit') || low.includes('quota')) {
-    spiegazione = t('err.apiCredit')
   } else if (status === 404 || low.includes('model') && low.includes('not found')) {
     spiegazione = t('err.apiModel')
   } else if (status === 413 || low.includes('too large') || low.includes('maximum size')) {

@@ -297,7 +297,7 @@ export const en: Record<TKey, string> = {
   'err.apiRate':
     'Too many requests in a row: the service paused you. Wait a minute and try again.',
   'err.apiCredit':
-    'Your credit on the service has run out, or billing is not enabled yet. Check your account on their site.',
+    'The key works, but that account has no credit. Every service has its own separate wallet: top it up on their site, or use another service. Waiting will not help.',
   'err.apiModel':
     'The chosen model does not exist on this service: it may have been retired. Try “Refresh the model list” in Settings and pick another one.',
   'err.apiTooBig':
