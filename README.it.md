@@ -190,6 +190,14 @@ il server locale in HTTPS (es. con Caddy o un tunnel).
 - **PWA:** su iOS l'app installata ha meno permessi di Safari; se il microfono non parte,
   prova dalla scheda Safari normale.
 
+## Idee e sogni con i Comandi Rapidi dell'iPhone
+
+Un Comando Rapido può dettare un'idea o un sogno, chiedere all'AI e salvare tutto in un file,
+senza aprire l'app; VoiceNotes poi importa la cartella intera (date, etichette e risposte
+comprese, senza doppioni). Il template **Idea: avvocato del diavolo** cerca i punti deboli
+senza inventarli; il template **Sogno** mette in ordine il racconto senza interpretarlo.
+Guida passo passo: [docs/comandi-rapidi-iphone.md](docs/comandi-rapidi-iphone.md).
+
 ## Come sono salvati i dati
 
 Tutto in IndexedDB del browser: audio (a blocchi da 30 s), trascrizioni, riepiloghi, mappe,

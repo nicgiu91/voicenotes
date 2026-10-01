@@ -16,7 +16,31 @@ export default function Templates() {
   const [editing, setEditing] = useState<Template | null>(null)
   const [viewing, setViewing] = useState<Template | null>(null)
 
+  const [copied, setCopied] = useState('')
+
   const reload = async () => setCustom(await db.templates.toArray())
+
+  const copyPrompt = async (tpl: Template) => {
+    let ok = false
+    try {
+      await navigator.clipboard.writeText(tpl.prompt)
+      ok = true
+    } catch {
+      // appunti moderni non permessi (pagina non sicura, browser incorporato): metodo vecchio
+      const area = document.createElement('textarea')
+      area.value = tpl.prompt
+      area.setAttribute('readonly', '')
+      area.style.position = 'fixed'
+      area.style.opacity = '0'
+      document.body.appendChild(area)
+      area.select()
+      ok = document.execCommand('copy')
+      area.remove()
+    }
+    // se nessuno dei due funziona lo si dice: resta il testo selezionabile qui sotto
+    setCopied(ok ? tpl.id : `!${tpl.id}`)
+    setTimeout(() => setCopied(''), 2500)
+  }
 
   useEffect(() => {
     void reload()
@@ -57,9 +81,19 @@ export default function Templates() {
             </button>
           </div>
           {viewing?.id === tpl.id && (
-            <pre style={{ whiteSpace: 'pre-wrap', fontSize: '0.82rem', color: 'var(--text-dim)' }}>
-              {tpl.prompt}
-            </pre>
+            <>
+              {/* serve a incollare il prompt nei Comandi Rapidi: selezionarlo a mano sul telefono è scomodo */}
+              <button className="btn-ghost btn-small" onClick={() => void copyPrompt(tpl)}>
+                {copied === tpl.id
+                  ? t('templates.copied')
+                  : copied === `!${tpl.id}`
+                    ? t('templates.copyFailed')
+                    : t('templates.copyPrompt')}
+              </button>
+              <pre style={{ whiteSpace: 'pre-wrap', fontSize: '0.82rem', color: 'var(--text-dim)' }}>
+                {tpl.prompt}
+              </pre>
+            </>
           )}
         </div>
       ))}

@@ -47,6 +47,15 @@ export default function Ask() {
 
   const selectedNotes = useMemo(() => notes.filter((n) => selected.includes(n.id)), [notes, selected])
 
+  // etichette presenti, con quante note ciascuna: "tutti i sogni" in un tocco
+  const tagCounts = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const n of notes) for (const tag of n.tags ?? []) counts.set(tag, (counts.get(tag) ?? 0) + 1)
+    return [...counts.entries()].filter(([, n]) => n > 1).sort((a, b) => b[1] - a[1])
+  }, [notes])
+
+  const selectTag = (tag: string) => setSelected(notes.filter((n) => n.tags?.includes(tag)).map((n) => n.id))
+
   const toggle = (id: string) =>
     setSelected((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]))
 
@@ -123,6 +132,15 @@ export default function Ask() {
     <div>
       <h1>{t('ask.title')}</h1>
       <p className="muted">{t('ask.chooseNotes')}</p>
+      {tagCounts.length > 0 && (
+        <div className="row" style={{ marginBottom: 8 }}>
+          {tagCounts.map(([tag, n]) => (
+            <button key={tag} className="btn-ghost btn-small" onClick={() => selectTag(tag)}>
+              {t('ask.byTag', { tag, n: String(n) })}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="row" style={{ marginBottom: 14 }}>
         {notes.map((n) => (
           <button

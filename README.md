@@ -201,6 +201,14 @@ serve the local server over HTTPS (e.g. with Caddy or a tunnel).
 - **PWA:** an installed PWA has fewer permissions than Safari on iOS; if the microphone will
   not start, try from a normal Safari tab.
 
+## Ideas and dreams with iPhone Shortcuts
+
+A Shortcut can dictate an idea or a dream, ask the AI and save everything to a file without
+opening the app; VoiceNotes then imports the whole folder (dates, tags and AI replies included,
+no duplicates). The **Idea: devil's advocate** template looks for weak spots without inventing
+them; the **Dream** template orders the account without interpreting it. Step-by-step guide
+(Italian): [docs/comandi-rapidi-iphone.md](docs/comandi-rapidi-iphone.md).
+
 ## How data is stored
 
 Everything lives in the browser's IndexedDB: audio (in 30-second chunks), transcripts,
