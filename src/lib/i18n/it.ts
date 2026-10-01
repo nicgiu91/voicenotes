@@ -121,6 +121,8 @@ export const it = {
   'ask.clearConfirm': 'Cancellare questa conversazione?',
 
   'settings.title': 'Impostazioni',
+  'settings.storedFor':
+    'Chiavi, note e impostazioni sono salvate solo per questo indirizzo: {address}. Se apri l’app da un indirizzo diverso (un’altra porta, l’IP del PC, la versione online) la trovi vuota: i dati non sono spariti, sono rimasti qui.',
   'settings.language': 'Lingua dell’app',
   'settings.transcription': 'Trascrizione',
   'settings.howToTranscribe': 'Come trascrivere',

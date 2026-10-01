@@ -97,6 +97,10 @@ export default function Settings() {
   return (
     <div>
       <h1>{t('settings.title')}</h1>
+      {/* il browser tiene un archivio per ogni indirizzo: aperta da un altro, l'app sembra vuota */}
+      <p className="muted">
+        {t('settings.storedFor', { address: `${location.origin}${location.pathname.replace(/index\.html$/, '')}` })}
+      </p>
 
       <label className="field">
         <span>{t('settings.language')}</span>

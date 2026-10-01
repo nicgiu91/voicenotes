@@ -122,6 +122,8 @@ export const en: Record<TKey, string> = {
   'ask.clearConfirm': 'Clear this conversation?',
 
   'settings.title': 'Settings',
+  'settings.storedFor':
+    'Keys, notes and settings are stored for this address only: {address}. If you open the app from a different address (another port, the PC’s IP, the online version) it will look empty: the data is not gone, it stayed here.',
   'settings.language': 'App language',
   'settings.transcription': 'Transcription',
   'settings.howToTranscribe': 'How to transcribe',
