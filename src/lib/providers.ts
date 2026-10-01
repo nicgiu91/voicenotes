@@ -275,6 +275,10 @@ export async function fetchModels(
   baseUrl: string,
   apiKey: string,
 ): Promise<ModelOption[]> {
+  const service = t(info.labelKey)
+  // senza chiave il servizio risponde 401: meglio dirlo prima, con parole chiare.
+  // Succede soprattutto sull'iPhone, dove l'app installata ha impostazioni sue
+  if (info.keyRequired && !apiKey.trim()) throw new Error(t('err.modelsNoKey', { service }))
   const base = baseUrl.replace(/\/+$/, '')
   const url = info.modelsUrl
     ? info.modelsUrl
@@ -301,7 +305,14 @@ export async function fetchModels(
   }
   if (!res.ok) {
     const body = await res.text().catch(() => '')
-    throw new Error(t('err.modelsFetch', { status: res.status, body: body.slice(0, 200) }))
+    const detail = body.trim().replace(/\s+/g, ' ').slice(0, 200)
+    if (res.status === 401 || res.status === 403) {
+      // le chiavi "limitate" di OpenAI possono trascrivere ma non leggere l'elenco
+      const low = body.toLowerCase()
+      const scope = low.includes('scope') || low.includes('insufficient permissions')
+      throw new Error(t(scope ? 'err.modelsScope' : 'err.modelsKey', { service, status: res.status, detail }))
+    }
+    throw new Error(t('err.modelsFetch', { status: res.status, body: detail }))
   }
   const data = (await res.json()) as {
     data?: { id?: string; display_name?: string }[]

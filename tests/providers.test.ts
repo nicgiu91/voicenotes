@@ -159,6 +159,32 @@ describe('fetchModels', () => {
     await expect(fetchModels(llmProvider('openai'), 'https://api.openai.com/v1', 'sbagliata')).rejects.toThrow('401')
   })
 
+  // il caso vero dall'iPhone: l'app installata non aveva la chiave
+  test('senza chiave non chiama nemmeno il servizio e lo dice', async () => {
+    const fetchMock = stub(true, { data: [] })
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(fetchModels(llmProvider('anthropic'), 'https://api.anthropic.com', '  ')).rejects.toThrow(
+      'iPhone',
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  test('“il tuo server” senza chiave va bene', async () => {
+    vi.stubGlobal('fetch', stub(true, { data: [{ id: 'qwen' }] }))
+    const models = await fetchModels(llmProvider('custom'), 'http://localhost:11434/v1', '')
+    expect(models.map((m) => m.id)).toEqual(['qwen'])
+  })
+
+  test('una chiave limitata senza il permesso sui modelli viene riconosciuta', async () => {
+    vi.stubGlobal(
+      'fetch',
+      stub(false, { error: { message: 'You have insufficient permissions for this operation. Missing scopes: api.model.read.' } }),
+    )
+    await expect(fetchModels(llmProvider('openai'), 'https://api.openai.com/v1', 'sk-proj-x')).rejects.toThrow(
+      'Models: Read',
+    )
+  })
+
   test('segnala quando non arriva nessun modello', async () => {
     vi.stubGlobal('fetch', stub(true, { data: [] }))
     await expect(fetchModels(llmProvider('openai'), 'https://api.openai.com/v1', 'k')).rejects.toThrow()

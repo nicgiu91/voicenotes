@@ -221,6 +221,12 @@ export const en: Record<TKey, string> = {
   'tmodels.largeV3': 'Whisper large v3 — the most accurate, a bit slower',
 
   'err.modelsFetch': 'Could not read the model list (HTTP {status}): {body}',
+  'err.modelsNoKey':
+    'The {service} key is missing from the field above. On iPhone, the installed app has its own settings, separate from the PC, so the key must be entered here too.',
+  'err.modelsKey':
+    '{service} rejected the key (HTTP {status}). Check that the field above holds the {service} key, copied in full, and that it has not been revoked. Detail: {detail}',
+  'err.modelsScope':
+    'The {service} key is “restricted”: it can transcribe or answer, but it is not allowed to read the model list. The app still works; to use this button enable “Models: Read” on the key, or create an unrestricted one. Detail: {detail}',
   'err.modelsNetwork': 'Could not reach the service: check the URL, the key and your connection.',
   'err.modelsEmpty': 'The service returned no models.',
 

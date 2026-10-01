@@ -349,6 +349,12 @@ export const it = {
   'tmodels.largeV3': 'Whisper large v3 — il più preciso, un po’ più lento',
 
   'err.modelsFetch': 'Non riesco a leggere i modelli (HTTP {status}): {body}',
+  'err.modelsNoKey':
+    'Manca la chiave di {service} nel campo qui sopra. Se sei sull’iPhone: l’app installata ha impostazioni sue, separate da quelle del PC, quindi la chiave va inserita anche qui.',
+  'err.modelsKey':
+    '{service} ha rifiutato la chiave (HTTP {status}). Controlla che nel campo qui sopra ci sia proprio la chiave di {service}, copiata per intera, e che non sia stata revocata. Dettaglio: {detail}',
+  'err.modelsScope':
+    'La chiave di {service} è “limitata”: può trascrivere o rispondere, ma non ha il permesso di leggere l’elenco dei modelli. L’app funziona lo stesso; per usare questo tasto abilita il permesso “Models: Read” sulla chiave, o creane una senza limiti. Dettaglio: {detail}',
   'err.modelsNetwork': 'Non riesco a contattare il servizio: controlla URL, chiave e connessione.',
   'err.modelsEmpty': 'Il servizio non ha restituito nessun modello.',
   'err.llmConfigure': 'Configura prima il provider AI nelle Impostazioni.',
