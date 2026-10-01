@@ -3,9 +3,9 @@
   "configurations": [
     {
       "name": "voicenotes",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 4000
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "--port", "4010", "--strictPort"],
+      "port": 4010
     }
   ]
 }
