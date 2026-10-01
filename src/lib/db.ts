@@ -45,7 +45,7 @@ export const defaultSettings: SettingsData = {
     provider: 'anthropic',
     baseUrl: 'https://api.anthropic.com',
     apiKey: '',
-    model: 'claude-sonnet-5',
+    model: 'claude-sonnet-5-5',
     fastModel: 'claude-haiku-4-5',
     maxTokens: 16000,
   },

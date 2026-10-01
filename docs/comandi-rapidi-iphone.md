@@ -48,7 +48,7 @@ Comandi Rapidi → **+** in alto a destra → chiamalo **Idea**. Poi aggiungi qu
     - `anthropic-version` → `2023-06-01`
     - `content-type` → `application/json`
   - Corpo della richiesta: **JSON**, con questi campi:
-    - `model` (Testo) → `claude-sonnet-5`
+    - `model` (Testo) → `claude-sonnet-5-5`
     - `max_tokens` (Numero) → `1500`
     - `system` (Testo) → variabile **Prompt**
     - `messages` (**Array**) → un elemento di tipo **Dizionario** con:

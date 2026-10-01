@@ -63,8 +63,8 @@ provider issues API keys.
 
 | Service | Models offered | Notes |
 |---|---|---|
-| OpenAI | `whisper-1`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` | the GPT-4o models are more accurate but return no timestamps |
-| Deepgram | `nova-3`, `nova-2` | **really separates speakers**, word-level timings |
+| OpenAI | `whisper-1`, `gpt-transcribe` | `gpt-transcribe` is more accurate but returns no timestamps; `whisper-1` shuts down on 26 February 2027 |
+| Deepgram | `nova-3` (`nova-2` does not understand Italian) | **really separates speakers**, word-level timings |
 | Your own server or another service | anything you type | whisper.cpp, faster-whisper, Speaches… see CORS below |
 
 **Who is speaking.** Only Deepgram separates voices for real: the audio goes in a single
@@ -122,10 +122,12 @@ Each model in the dropdown states its speed/quality trade-off. Prices are shown 
 | Model | Input / output per million tokens | Good for |
 |---|---|---|
 | Claude Haiku 4.5 | $1 / $5 | fast, cheap, everyday notes |
-| Claude Sonnet 5 | $2 / $10 | balanced — the recommended default |
-| Claude Opus 5 | $5 / $25 | top quality on demanding material |
-| Claude Opus 4.8 | $5 / $25 | previous generation |
-| Claude Fable 5 | $10 / $50 | most capable, and priced accordingly |
+| Claude Sonnet 5.5 | $2 / $10 | balanced — the recommended default |
+| Claude Opus 5.5 | $4 / $20 | top quality; always reasons before answering, so it uses more |
+| Claude Fable 5.1 | $10 / $50 | most capable, and priced accordingly |
+
+Prices checked against the official price list on 1 October 2026. Anyone who had picked
+Sonnet 5, Opus 5, Opus 4.8 or Fable 5 is moved to the successor, which costs the same or less.
 
 For the other services, check their own pricing pages. If the model you want is missing,
 **Refresh the model list** asks the service which models your key can actually use, and
@@ -142,7 +144,7 @@ That is why there are two dropdowns:
 | **Model for quick jobs** | the note's automatic title, marking who is speaking |
 
 The title is generated on every transcription and is the simplest thing the app ever asks the
-AI to do: handing it to a cheap model (Haiku, Gemini Flash, GPT-4o mini) cuts the cost exactly
+AI to do: handing it to a cheap model (Haiku, Gemini Flash-Lite, GPT-4o mini) cuts the cost exactly
 where it repeats most, with no visible difference. If you would rather use one model for
 everything, pick the same one in both dropdowns.
 

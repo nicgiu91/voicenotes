@@ -20,6 +20,7 @@ import {
 } from '../lib/providers'
 import { useT, type Lang } from '../lib/i18n'
 import { checkProviderConfig } from '../lib/configCheck'
+import { checkModel } from '../lib/modelUpdates'
 
 export default function Settings() {
   const { t } = useT()
@@ -33,7 +34,12 @@ export default function Settings() {
   const [trModels, setTrModels] = useState<ModelOption[] | null>(null)
   const [llmModelsMsg, setLlmModelsMsg] = useState('')
   const [trModelsMsg, setTrModelsMsg] = useState('')
-  const [loadingModels, setLoadingModels] = useState<'llm' | 'transcribe' | null>(null)
+  const [loadingModels, setLoadingModels] = useState<'llm' | 'transcribe' | 'updates' | null>(null)
+  // esito di "Cerca versioni più recenti", per il modello principale e quello leggero
+  const [updates, setUpdates] = useState<
+    { role: 'model' | 'fastModel'; current: string; missing: boolean; next: string; nextLabel: string }[] | null
+  >(null)
+  const [updatesMsg, setUpdatesMsg] = useState('')
 
   useEffect(() => {
     void getSettings().then(setS)
@@ -85,6 +91,52 @@ export default function Settings() {
       })
       .catch((err: unknown) => setMsg(err instanceof Error ? err.message : t('err.modelsEmpty')))
       .finally(() => setLoadingModels(null))
+  }
+
+  const labelOf = (id: string, fetched: ModelOption[]) => {
+    const known = llmInfo.models.find((m) => m.id === id) ?? fetched.find((m) => m.id === id)
+    return known ? modelLabel(known) : id
+  }
+
+  const checkUpdates = () => {
+    setLoadingModels('updates')
+    setUpdates(null)
+    setUpdatesMsg('')
+    void fetchModels(llmInfo, s.llm.baseUrl, s.llm.apiKey)
+      .then((list) => {
+        const ids = list.map((m) => m.id)
+        const roles = (['model', 'fastModel'] as const).filter(
+          (role, i) => s.llm[role] && (i === 0 || s.llm.fastModel !== s.llm.model),
+        )
+        const found = roles
+          .map((role) => {
+            const check = checkModel(s.llm[role], ids)
+            const next = check.status === 'ok' ? '' : (check.next ?? '')
+            return {
+              role,
+              current: s.llm[role],
+              ok: check.status === 'ok',
+              missing: check.status === 'missing',
+              next,
+              nextLabel: next ? labelOf(next, list) : '',
+            }
+          })
+          .filter((u) => !u.ok)
+        setUpdates(found)
+      })
+      .catch((err: unknown) => setUpdatesMsg(err instanceof Error ? err.message : t('err.modelsEmpty')))
+      .finally(() => setLoadingModels(null))
+  }
+
+  const applyUpdate = async (role: 'model' | 'fastModel', next: string, nextLabel: string) => {
+    const changed = { ...s, llm: { ...s.llm, [role]: next } }
+    // un modello appena uscito non è ancora tra quelli proposti: lo si aggiunge
+    // al menu, altrimenti comparirebbe come "Altro"
+    if (isCustomModel(models, next)) setLlmModels([...models, { id: next, label: nextLabel }])
+    setS(changed)
+    await saveSettings(changed)
+    setUpdates((cur) => (cur ?? []).filter((u) => u.role !== role))
+    setUpdatesMsg(t('settings.updateApplied', { next: nextLabel }))
   }
 
   const keyLink = (info: ProviderInfo<string>) =>
@@ -373,8 +425,32 @@ export default function Settings() {
         <button className="btn-ghost" disabled={loadingModels !== null} onClick={() => loadModels('llm')}>
           {loadingModels === 'llm' ? t('settings.loadingModels') : t('settings.loadModels')}
         </button>
+        <button className="btn-ghost" disabled={loadingModels !== null} onClick={checkUpdates}>
+          {loadingModels === 'updates' ? t('settings.checkingUpdates') : t('settings.checkUpdates')}
+        </button>
         {llmModelsMsg && <span className="muted">{llmModelsMsg}</span>}
       </div>
+      {updates && updates.length === 0 && <div className="info-box">{t('settings.updatesNone')}</div>}
+      {updates?.map((u) => (
+        <div key={u.role} className="info-box">
+          {t(u.missing ? (u.next ? 'settings.updateMissing' : 'settings.updateMissingNone') : 'settings.updateNewer', {
+            role: t(u.role === 'model' ? 'settings.roleMain' : 'settings.roleFast'),
+            current: labelOf(u.current, []),
+            next: u.nextLabel,
+          })}
+          {u.next && (
+            <div style={{ marginTop: 8 }}>
+              <button className="btn-primary btn-small" onClick={() => void applyUpdate(u.role, u.next, u.nextLabel)}>
+                {t('settings.updateUse')}
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+      {updates?.some((u) => u.next) && (
+        <p className="muted">{t('settings.updatePriceNote')}</p>
+      )}
+      {updatesMsg && <p className="muted">{updatesMsg}</p>}
 
       {mixedContentRisk && <div className="info-box">{t('settings.mixedContent')}</div>}
 

@@ -67,16 +67,15 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     baseUrl: 'https://api.anthropic.com',
     keyUrl: 'https://console.anthropic.com/settings/keys',
     keyRequired: true,
-    defaultModel: 'claude-sonnet-5',
+    defaultModel: 'claude-sonnet-5-5',
     fastModel: 'claude-haiku-4-5',
     privacyKey: 'privacy.anthropic',
     keyPrefix: 'sk-ant-',
     models: [
       { id: 'claude-haiku-4-5', labelKey: 'models.haiku45' },
-      { id: 'claude-sonnet-5', labelKey: 'models.sonnet5' },
-      { id: 'claude-opus-5', labelKey: 'models.opus5' },
-      { id: 'claude-opus-4-8', labelKey: 'models.opus48' },
-      { id: 'claude-fable-5', labelKey: 'models.fable5' },
+      { id: 'claude-sonnet-5-5', labelKey: 'models.sonnet55' },
+      { id: 'claude-opus-5-5', labelKey: 'models.opus55' },
+      { id: 'claude-fable-5-1', labelKey: 'models.fable51' },
     ],
   },
   {
@@ -90,10 +89,11 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     privacyKey: 'privacy.openai',
     keyPrefix: 'sk-',
     models: [
+      { id: 'gpt-6.1-sol', labelKey: 'models.gpt61Sol' },
+      { id: 'gpt-6-luna', labelKey: 'models.gpt6Luna' },
+      { id: 'gpt-6-astra', labelKey: 'models.gpt6Astra' },
+      // non ragiona prima di rispondere: resta il piu' rapido per titoli ed etichette
       { id: 'gpt-4o-mini', labelKey: 'models.gpt4oMini' },
-      { id: 'gpt-4.1-mini', labelKey: 'models.gpt41Mini' },
-      { id: 'gpt-4o', labelKey: 'models.gpt4o' },
-      { id: 'gpt-4.1', labelKey: 'models.gpt41' },
     ],
   },
   {
@@ -106,13 +106,13 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     keyRequired: true,
     // Gemini elenca i modelli fuori dal protocollo OpenAI-compatible
     modelsUrl: 'https://generativelanguage.googleapis.com/v1beta/models',
-    fastModel: 'gemini-2.0-flash',
+    fastModel: 'gemini-3.5-flash-lite',
     privacyKey: 'privacy.google',
     keyPrefix: 'AIza',
     models: [
-      { id: 'gemini-2.5-flash', labelKey: 'models.gemini25Flash' },
-      { id: 'gemini-2.5-pro', labelKey: 'models.gemini25Pro' },
-      { id: 'gemini-2.0-flash', labelKey: 'models.gemini20Flash' },
+      { id: 'gemini-3.8-flash', labelKey: 'models.gemini38Flash' },
+      { id: 'gemini-3.5-flash-lite', labelKey: 'models.gemini35FlashLite' },
+      { id: 'gemini-3.1-pro-preview', labelKey: 'models.gemini31ProPreview' },
     ],
   },
   {
@@ -126,8 +126,8 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     privacyKey: 'privacy.xai',
     keyPrefix: 'xai-',
     models: [
+      { id: 'grok-4.7', labelKey: 'models.grok47' },
       { id: 'grok-4.6', labelKey: 'models.grok46' },
-      { id: 'grok-4.5', labelKey: 'models.grok45' },
       { id: 'grok-4.3', labelKey: 'models.grok43' },
     ],
   },
@@ -153,8 +153,8 @@ export const LLM_PROVIDERS: LlmProviderInfo[] = [
     fastModel: 'mistral-small-latest',
     privacyKey: 'privacy.mistral',
     models: [
+      { id: 'mistral-medium-latest', labelKey: 'models.mistralMedium' },
       { id: 'mistral-small-latest', labelKey: 'models.mistralSmall' },
-      { id: 'mistral-large-latest', labelKey: 'models.mistralLarge' },
     ],
   },
   {
@@ -199,9 +199,8 @@ export const TRANSCRIBE_PROVIDERS: TranscribeProviderInfo[] = [
     privacyKey: 'tprivacy.openai',
     keyPrefix: 'sk-',
     models: [
-      { id: 'whisper-1', labelKey: 'tmodels.whisper1' },
-      { id: 'gpt-4o-mini-transcribe', labelKey: 'tmodels.gpt4oMiniTranscribe' },
-      { id: 'gpt-4o-transcribe', labelKey: 'tmodels.gpt4oTranscribe' },
+      { id: 'whisper-1', labelKey: 'tmodels.whisper1Openai' },
+      { id: 'gpt-transcribe', labelKey: 'tmodels.gptTranscribe' },
     ],
   },
   {
@@ -319,6 +318,29 @@ export async function fetchModels(
 }
 
 /**
+ * Nomi di modello salvati che vanno sostituiti, per servizio. Due casi:
+ * - non funzionano piu' (DeepSeek li ha ritirati, Google ha chiuso l'accesso
+ *   ai Gemini 2.x): chi li aveva salvati riceverebbe solo un errore;
+ * - Claude: c'e' un successore allo stesso prezzo o piu' basso, e quelli
+ *   vecchi escono dal menu (verificato su platform.claude.com, 1 ott 2026).
+ * Il secondo argomento dice se e' il modello leggero, che su Gemini ha un
+ * sostituto diverso dal principale.
+ */
+const SOSTITUZIONI: Partial<Record<LlmProvider, (model: string, fast: boolean) => string>> = {
+  deepseek: (m) =>
+    ['deepseek-chat', 'deepseek-reasoner', 'deepseek-v4-flash'].includes(m) ? 'deepseek-flash' : m,
+  google: (m, fast) =>
+    m.startsWith('gemini-2') ? (fast ? 'gemini-3.5-flash-lite' : 'gemini-3.8-flash') : m,
+  anthropic: (m) =>
+    ({
+      'claude-sonnet-5': 'claude-sonnet-5-5',
+      'claude-opus-5': 'claude-opus-5-5',
+      'claude-opus-4-8': 'claude-opus-5-5',
+      'claude-fable-5': 'claude-fable-5-1',
+    })[m] ?? m,
+}
+
+/**
  * Adatta le impostazioni salvate prima che i provider diventassero molti:
  * allora 'openai' voleva dire "un endpoint OpenAI-compatible qualsiasi", oggi
  * indica il servizio OpenAI vero e proprio e i server locali sono 'custom'.
@@ -328,15 +350,21 @@ export function migrateSettings(saved: SettingsData): SettingsData {
   if (llm.provider === 'openai' && !llm.baseUrl.includes('api.openai.com')) llm.provider = 'custom'
   // impostazioni salvate prima del modello leggero: si parte da quello del servizio
   if (!llm.fastModel) llm.fastModel = llmProvider(llm.provider).fastModel ?? llm.model
-  // DeepSeek ha ritirato questi nomi nel 2026: chi li aveva salvati riceverebbe un errore
-  const RITIRATI = ['deepseek-chat', 'deepseek-reasoner', 'deepseek-v4-flash']
-  if (llm.provider === 'deepseek') {
-    if (RITIRATI.includes(llm.model)) llm.model = 'deepseek-flash'
-    if (RITIRATI.includes(llm.fastModel)) llm.fastModel = 'deepseek-flash'
+  const sost = SOSTITUZIONI[llm.provider]
+  if (sost) {
+    llm.model = sost(llm.model, false)
+    llm.fastModel = sost(llm.fastModel, true)
   }
   // il vecchio tetto di 4096 tagliava a meta' le risposte lunghe (diarizzazione)
   if (llm.maxTokens === 4096) llm.maxTokens = 16000
   const transcribe = { ...saved.transcribe }
+  // OpenAI spegne questi due il 26 febbraio 2027; il successore, come loro, non da' i tempi
+  if (
+    transcribe.provider === 'openai' &&
+    ['gpt-4o-transcribe', 'gpt-4o-mini-transcribe'].includes(transcribe.model)
+  ) {
+    transcribe.model = 'gpt-transcribe'
+  }
   if (!TRANSCRIBE_PROVIDERS.some((p) => p.id === transcribe.provider)) {
     const match = TRANSCRIBE_PROVIDERS.find(
       (p) => !p.ownUrl && transcribe.baseUrl.startsWith(p.baseUrl),

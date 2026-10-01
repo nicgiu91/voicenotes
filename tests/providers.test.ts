@@ -99,14 +99,14 @@ describe('URL proposto cambiando servizio', () => {
 
 describe('modelli', () => {
   test('modelLabel usa la traduzione, l’etichetta o l’id', () => {
-    expect(modelLabel({ id: 'claude-sonnet-5', labelKey: 'models.sonnet5' })).toContain('Sonnet')
+    expect(modelLabel({ id: 'claude-sonnet-5-5', labelKey: 'models.sonnet55' })).toContain('Sonnet')
     expect(modelLabel({ id: 'x', label: 'Etichetta' })).toBe('Etichetta')
     expect(modelLabel({ id: 'solo-id' })).toBe('solo-id')
   })
 
   test('isCustomModel riconosce un modello fuori elenco', () => {
     const models = llmProvider('anthropic').models
-    expect(isCustomModel(models, 'claude-sonnet-5')).toBe(false)
+    expect(isCustomModel(models, 'claude-sonnet-5-5')).toBe(false)
     expect(isCustomModel(models, 'un-modello-mio')).toBe(true)
   })
 })
@@ -187,7 +187,7 @@ describe('impostazioni salvate prima dei nuovi servizi', () => {
 
   test('le impostazioni senza modello leggero prendono quello del servizio', () => {
     expect(saved({ provider: 'anthropic', fastModel: '' }).llm.fastModel).toBe('claude-haiku-4-5')
-    expect(saved({ provider: 'google', fastModel: '' }).llm.fastModel).toBe('gemini-2.0-flash')
+    expect(saved({ provider: 'google', fastModel: '' }).llm.fastModel).toBe('gemini-3.5-flash-lite')
   })
 
   test('un modello leggero già scelto non viene sovrascritto', () => {
@@ -206,7 +206,40 @@ describe('impostazioni salvate prima dei nuovi servizi', () => {
   })
 
   test('i modelli ritirati di DeepSeek non toccano gli altri servizi', () => {
-    expect(saved({ provider: 'anthropic', model: 'claude-sonnet-5' }).llm.model).toBe('claude-sonnet-5')
+    expect(saved({ provider: 'anthropic', model: 'claude-haiku-4-5' }).llm.model).toBe('claude-haiku-4-5')
+    expect(saved({ provider: 'custom', baseUrl: 'http://localhost:11434/v1', model: 'deepseek-chat' }).llm.model).toBe(
+      'deepseek-chat',
+    )
+  })
+
+  // Google ha chiuso l'accesso ai Gemini 2.x: chi li aveva salvati riceverebbe solo errori
+  test('i Gemini 2.x passano ai 3.x, il leggero al leggero', () => {
+    const s = saved({ provider: 'google', model: 'gemini-2.5-pro', fastModel: 'gemini-2.0-flash' })
+    expect(s.llm.model).toBe('gemini-3.8-flash')
+    expect(s.llm.fastModel).toBe('gemini-3.5-flash-lite')
+    expect(saved({ provider: 'google', model: 'gemini-3.1-pro-preview' }).llm.model).toBe('gemini-3.1-pro-preview')
+  })
+
+  test('i Claude usciti dal menu passano al successore allo stesso prezzo o meno', () => {
+    expect(saved({ provider: 'anthropic', model: 'claude-sonnet-5' }).llm.model).toBe('claude-sonnet-5-5')
+    expect(saved({ provider: 'anthropic', model: 'claude-opus-5' }).llm.model).toBe('claude-opus-5-5')
+    expect(saved({ provider: 'anthropic', model: 'claude-opus-4-8' }).llm.model).toBe('claude-opus-5-5')
+    expect(saved({ provider: 'anthropic', model: 'claude-fable-5' }).llm.model).toBe('claude-fable-5-1')
+    expect(saved({ provider: 'anthropic', fastModel: 'claude-haiku-4-5' }).llm.fastModel).toBe('claude-haiku-4-5')
+  })
+
+  test('ogni modello proposto nei menu sopravvive alla migrazione', () => {
+    for (const p of LLM_PROVIDERS.filter((x) => !x.ownUrl)) {
+      for (const m of p.models) {
+        expect(saved({ provider: p.id, baseUrl: p.baseUrl, model: m.id }).llm.model).toBe(m.id)
+      }
+    }
+  })
+
+  test('le trascrizioni GPT-4o dismesse passano a gpt-transcribe', () => {
+    expect(saved({}, { provider: 'openai', model: 'gpt-4o-transcribe' }).transcribe.model).toBe('gpt-transcribe')
+    expect(saved({}, { provider: 'openai', model: 'gpt-4o-mini-transcribe' }).transcribe.model).toBe('gpt-transcribe')
+    expect(saved({}, { provider: 'openai', model: 'whisper-1' }).transcribe.model).toBe('whisper-1')
   })
 
   test('il vecchio tetto di 4096 token viene alzato', () => {

@@ -51,8 +51,8 @@ rilascia le API key.
 
 | Servizio | Modelli proposti | Note |
 |---|---|---|
-| OpenAI | `whisper-1`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` | i modelli GPT-4o sono più precisi ma non danno i timestamp |
-| Deepgram | `nova-3`, `nova-2` | **separa davvero le voci** e dà i tempi parola per parola |
+| OpenAI | `whisper-1`, `gpt-transcribe` | `gpt-transcribe` è più preciso ma non dà i timestamp; `whisper-1` viene spento il 26 febbraio 2027 |
+| Deepgram | `nova-3` (`nova-2` non capisce l'italiano) | **separa davvero le voci** e dà i tempi parola per parola |
 | Il tuo server o un altro servizio | quello che scrivi tu | whisper.cpp, faster-whisper, Speaches… vedi CORS più sotto |
 
 **Chi parla.** Solo Deepgram separa le voci davvero: l'audio viene inviato in un'unica
@@ -111,10 +111,12 @@ Claude:
 | Modello | Costo per milione di token (input/output) | Adatto a |
 |---|---|---|
 | Claude Haiku 4.5 | $1 / $5 | veloce ed economico, uso quotidiano |
-| Claude Sonnet 5 | $2 / $10 | equilibrato — la scelta consigliata |
-| Claude Opus 5 | $5 / $25 | massima qualità su materiale impegnativo |
-| Claude Opus 4.8 | $5 / $25 | generazione precedente |
-| Claude Fable 5 | $10 / $50 | il più capace, e si paga |
+| Claude Sonnet 5.5 | $2 / $10 | equilibrato — la scelta consigliata |
+| Claude Opus 5.5 | $4 / $20 | massima qualità; ragiona sempre prima di rispondere, quindi consuma di più |
+| Claude Fable 5.1 | $10 / $50 | il più capace, e si paga |
+
+Prezzi verificati sul listino ufficiale il 1° ottobre 2026. Chi aveva scelto Sonnet 5, Opus 5,
+Opus 4.8 o Fable 5 passa da solo al successore, che costa uguale o meno.
 
 Per gli altri servizi controlla il listino sul loro sito. Se il modello che cerchi non è in
 elenco, **Aggiorna l'elenco dei modelli** chiede al servizio quali modelli la tua chiave può
@@ -131,7 +133,7 @@ Per questo le tendine sono due:
 | **Modello per i lavori veloci** | titolo automatico della nota, indicazione di chi parla |
 
 Il titolo viene generato a ogni trascrizione ed è il lavoro più semplice che l'app chieda
-all'AI: affidarlo a un modello economico (Haiku, Gemini Flash, GPT-4o mini) taglia la spesa
+all'AI: affidarlo a un modello economico (Haiku, Gemini Flash-Lite, GPT-4o mini) taglia la spesa
 proprio dove si ripete di più, senza differenze visibili nel risultato. Se preferisci un
 modello solo per tutto, scegli lo stesso in entrambe le tendine.
 
